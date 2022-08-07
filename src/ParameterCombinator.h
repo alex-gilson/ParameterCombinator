@@ -7,13 +7,7 @@
 #include <memory>
 #include <vector>
 
-#ifdef USE_DOUBLE
-typedef double my_float;
-#else
-typedef float my_float;
-#endif
-
-using var_t = std::variant<int, my_float, std::string>;
+using var_t = std::variant<int, float, double, std::string>;
 using parameterInstanceMap_t  = std::map<std::string, var_t >;
 using parameterCombinations_t = std::unordered_map<std::string, std::vector<var_t> >;
 using stringSetMap_t = std::unordered_map<std::string, std::set<std::string> >;
@@ -64,10 +58,10 @@ struct ParameterInstanceSetCompare
 				}
 				if (parameterTypeMap_.at("double").count(param.first))
 				{
-					if (std::get<my_float>(param.second) == std::get<my_float>(b.at(param.first)))
+					if (std::get<double>(param.second) == std::get<double>(b.at(param.first)))
 						continue;
 					else
-						return std::get<my_float>(param.second) < std::get<my_float>(b.at(param.first));
+						return std::get<double>(param.second) < std::get<double>(b.at(param.first));
 				}
 				else
 				{
@@ -92,7 +86,7 @@ public:
 		parameterTypeMap_t& parameterTypeMap, printableParams_t& printableParameters);
 	ParameterCombinator(const ParameterCombinator& other);
 	std::string constructVariationName(const parameterInstanceMap_t& paramInstance);
-	const parameterInstanceSet_t* getParameterInstanceSet();
+	const parameterInstanceSet_t& getParameterInstanceSet();
 	const parameterCombinations_t* getParameterCombinations();
 	void addParametersWithoutRecombining(parameterCombinations_t& paramCombs, dontCares_t& dontCares,
 		std::string& dontCareKey, parameterTypeMap_t& parameterTypeMap);

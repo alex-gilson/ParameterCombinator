@@ -74,7 +74,7 @@ ParameterCombinator::ParameterCombinator(parameterCombinations_t& paramCombs, do
 			if (parameterTypeMap_["double"].count(param.first))
 			{
 				int64_t a = static_cast<int64_t>(set[set.size() - i - 1]);
-				my_float b = reinterpret_cast<my_float&>(a);
+				double b = reinterpret_cast<double&>(a);
 				newParamCombs[param.first].push_back(b);
 			}
 			else if (parameterTypeMap_["string"].count(param.first))
@@ -91,17 +91,29 @@ ParameterCombinator::ParameterCombinator(parameterCombinations_t& paramCombs, do
 			i++;
 		}
 	}
-	
+
 	// Remove repeated combinations taking into account don't care parameters
 	ParameterInstanceSetCompare cmp(dontCares, dontCareKey, parameterTypeMap_);
 	parameterInstanceSet_ = std::make_unique<parameterInstanceSet_t>(cmp);
 
-	for (size_t paramIdx = 0; paramIdx < newParamCombs["buflen"].size(); paramIdx++)
+	size_t combSize = newParamCombs[newParamCombs.begin()->first].size();
+
+	for (size_t paramIdx = 0; paramIdx < combSize; paramIdx++)
 	{
 		// Select the parameters to use for this iteration of the test
 		parameterInstanceMap_t paramInstance;
-		for (auto& [paramName, paramValues] : newParamCombs) {
+		for (auto& [paramName, paramValues] : newParamCombs)
+		{
 			paramInstance[paramName] = paramValues[paramIdx];
+		}
+		// Remove paramter instance values that are irrelevant to the combination
+		if (!dontCareKey.empty())
+		{
+			std::string dontCareVal = std::get<std::string>(paramInstance[dontCareKey]);
+			for (auto& paramName : dontCares[dontCareVal])
+			{
+				paramInstance.erase(paramName);
+			}
 		}
 		parameterInstanceSet_->insert(paramInstance);
 	}
@@ -134,7 +146,7 @@ std::string ParameterCombinator::constructVariationName(const parameterInstanceM
 		else if (parameterTypeMap_["double"].count(paramName))
 		{
 			std::stringstream ss;
-			ss << std::get<my_float>(paramValue) << std::scientific;
+			ss << std::get<double>(paramValue) << std::scientific;
 			variationName += paramName + "_" + ss.str() + "_";
 		}
 		else
@@ -151,9 +163,9 @@ std::string ParameterCombinator::constructVariationName(const parameterInstanceM
 
 }
 
-const parameterInstanceSet_t* ParameterCombinator::getParameterInstanceSet()
+const parameterInstanceSet_t& ParameterCombinator::getParameterInstanceSet()
 {
-	return parameterInstanceSet_.get();
+	return *parameterInstanceSet_.get();
 }
 
 const parameterCombinations_t* ParameterCombinator::getParameterCombinations()
