@@ -10,40 +10,44 @@
 using var_t = std::variant<int, float, double, std::string>;
 using parameterInstanceMap_t  = std::map<std::string, var_t >;
 using parameterCombinations_t = std::unordered_map<std::string, std::vector<var_t> >;
+using stringSet_t = std::set<std::string>;
 using stringSetMap_t = std::unordered_map<std::string, std::set<std::string> >;
 using parameterTypeMap_t = stringSetMap_t;
 using printableParams_t = std::set<std::string>;
-using dontCareKey_t = std::string;
+using dontCares_t = std::unordered_map<std::string, std::unordered_map<std::string, stringSet_t>>;
+
 // If stringSetMap_t is empty, ignore all comparisons of dontCareKey_t
 // Else just the ones specific to that dontCareKey_t element
 //using dontCares_t = std::vector<std::pair<dontCareKey_t, stringSetMap_t > >;
 
-using dontCares_t = stringSetMap_t;
-
 struct ParameterInstanceSetCompare
 {
 	const dontCares_t dontCares_;
-	const std::string dontCareKey_;
 	const parameterTypeMap_t parameterTypeMap_;
 	ParameterInstanceSetCompare()
 		: dontCares_()
-		, dontCareKey_()
 		, parameterTypeMap_()
 	{};
-	ParameterInstanceSetCompare(const dontCares_t& dontCares, const std::string& dontCareKey, const parameterTypeMap_t& parameterTypeMap)
+	ParameterInstanceSetCompare(const dontCares_t& dontCares, const parameterTypeMap_t& parameterTypeMap)
 		: dontCares_(dontCares)
-		, dontCareKey_(dontCareKey)
 		, parameterTypeMap_(parameterTypeMap)
 	{};
 	bool operator()(const parameterInstanceMap_t& a, const parameterInstanceMap_t& b) const
 	{
 		for (auto& param : a)
 		{
-			// If dontCares_ is empty, ignore all comparisons of the dontCareKey
-			// Else just the ones specific to that dontCareKey element
-			//if (!dontCareKey_.empty() && dontCares_.at(std::get<std::string>(b.at(dontCareKey_))).count(param.first))
-			if ((dontCares_.empty() && dontCareKey_ == param.first) ||
-			   (!dontCareKey_.empty() && dontCares_.at(std::get<std::string>(b.at(dontCareKey_))).count(param.first)))
+			bool skip = false;
+			for (auto& dontCare : dontCares_)
+			{
+				const std::string& dontCareKey = dontCare.first;
+				if (!dontCareKey.empty() && dontCare.second.count(std::get<std::string>(b.at(dontCareKey))) &&
+					dontCare.second.at(std::get<std::string>(b.at(dontCareKey))).count(param.first))
+				{
+					skip = true;
+					break;
+				}
+			}
+			if (skip)
 			{
 				continue;
 			}
@@ -82,7 +86,7 @@ class ParameterCombinator
 {
 public:
 
-	ParameterCombinator(parameterCombinations_t& paramCombs, dontCares_t& dontCares, std::string& dontCareKey,
+	ParameterCombinator(parameterCombinations_t& paramCombs, dontCares_t& dontCares,
 		parameterTypeMap_t& parameterTypeMap, printableParams_t& printableParameters);
 	ParameterCombinator(const ParameterCombinator& other);
 	std::string constructVariationName(const parameterInstanceMap_t& paramInstance);

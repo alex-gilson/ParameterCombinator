@@ -1,40 +1,53 @@
 #include "ParameterCombinator.h"
 #include <iostream>
 
+void printOutputAndExpected(const parameterInstanceSet_t& output, const std::vector<parameterInstanceMap_t>& expected)
+{
+	for (auto& paramInstanceMap : expected)
+	{
+		int a = 4;
+	}
+
+}
+
 bool testSimpleCombination()
 {
 	bool failed = false;
 	parameterCombinations_t paramCombs;
-	dontCares_t             dontCares;
 	parameterTypeMap_t      parameterTypeMap;
 	printableParams_t		printableParams;
 
 	// List of parameters to test
-	paramCombs["A"] = { "one", "two" };
-	paramCombs["B"] = { 1 };
-	paramCombs["C"] = { 1.1, 2.2, 3.3 };
+	paramCombs["vehicle"]    = { "car", "motorbike" };
+	paramCombs["horsepower"] = { 100, 120, 130 };
+	paramCombs["airbag"]     = { 0, 1 };
 
 	// List of parameters to be ignored in the combination
-	std::string dontCareKey = "";
+	dontCares_t dontCares{};
 
 	// Type of each of the parameters
-	parameterTypeMap["string"] = { "A" };
-	parameterTypeMap["double"] = { "C" };
-	parameterTypeMap["int"]    = { "B" };
+	parameterTypeMap["string"] = { "vehicle" };
+	parameterTypeMap["int"]    = { "horsepower", "airbag"};
 
-	ParameterCombinator paramCombinator(paramCombs, dontCares, dontCareKey, parameterTypeMap, printableParams);
+	ParameterCombinator paramCombinator(paramCombs, dontCares, parameterTypeMap, printableParams);
 
-	ParameterInstanceSetCompare cmp(dontCares, dontCareKey, parameterTypeMap);
+	ParameterInstanceSetCompare cmp(dontCares, parameterTypeMap);
 	auto expectedCombinationsSet = std::make_unique<parameterInstanceSet_t>(cmp);
 
 	std::vector<parameterInstanceMap_t> expectedCombinations
 	{
-		{{"A", "one"}, {"B", 1}, {"C", 1.1}},
-		{{"A", "one"}, {"B", 1}, {"C", 2.2}},
-		{{"A", "one"}, {"B", 1}, {"C", 3.3}},
-		{{"A", "two"}, {"B", 1}, {"C", 1.1}},
-		{{"A", "two"}, {"B", 1}, {"C", 2.2}},
-		{{"A", "two"}, {"B", 1}, {"C", 3.3}},
+		{{"vehicle", "car"},       {"horsepower", 100}, {"airbag", 0}},
+		{{"vehicle", "car"},       {"horsepower", 100}, {"airbag", 1}},
+		{{"vehicle", "car"},       {"horsepower", 120}, {"airbag", 0}},
+		{{"vehicle", "car"},       {"horsepower", 120}, {"airbag", 1}},
+		{{"vehicle", "car"},       {"horsepower", 130}, {"airbag", 0}},
+		{{"vehicle", "car"},       {"horsepower", 130}, {"airbag", 1}},
+		{{"vehicle", "motorbike"}, {"horsepower", 100}, {"airbag", 0}},
+		{{"vehicle", "motorbike"}, {"horsepower", 100}, {"airbag", 1}},
+		{{"vehicle", "motorbike"}, {"horsepower", 120}, {"airbag", 0}},
+		{{"vehicle", "motorbike"}, {"horsepower", 120}, {"airbag", 1}},
+		{{"vehicle", "motorbike"}, {"horsepower", 130}, {"airbag", 0}},
+		{{"vehicle", "motorbike"}, {"horsepower", 130}, {"airbag", 1}},
 	};
 
 	const parameterInstanceSet_t& paramSet = paramCombinator.getParameterInstanceSet();
@@ -46,6 +59,11 @@ bool testSimpleCombination()
 		failed |= !(paramSet.count(paramInstanceMap));
 	}
 
+	if (failed)
+	{
+		printOutputAndExpected(paramSet, expectedCombinations);
+	}
+
 	return failed;
 
 }
@@ -54,38 +72,145 @@ bool testCombinationWithDontCare()
 {
 	bool failed = false;
 	parameterCombinations_t paramCombs;
-	dontCares_t             dontCares;
 	parameterTypeMap_t      parameterTypeMap;
 	printableParams_t		printableParams;
 
 	// List of parameters to test
-	paramCombs["A"] = { "one", "two" };
-	paramCombs["B"] = { 1 };
-	paramCombs["C"] = { 1.1, 2.2, 3.3 };
-	paramCombs["D"] = { "three", "four"};
+	paramCombs["vehicle"]        = { "car", "motorbike" };
+	paramCombs["horsepower"]     = { 100, 130 };
+	paramCombs["AC"]             = { 0, 1 };
+	paramCombs["wind-protector"] = { 0, 1};
+	paramCombs["wing-length"]    = { 30.3 };
 
 	// List of parameters to be ignored in the combination
 	// TODO: support for dontCares with other key types
-	std::string dontCareKey  = "A";
-	dontCares["one"]         = { "C" };
-	dontCares["two"]         = { "D" };
+	dontCares_t dontCares =
+	{
+		{"vehicle",
+			{
+				{"car",
+					{"wind-protector", "wing-length"}
+				},
+				{"motorbike",
+					{"AC", "wing-length"}
+				}
+			}
+		}
+	};
 
 	// Type of each of the parameters
-	parameterTypeMap["string"] = { "A", "D" };
-	parameterTypeMap["double"] = { "C" };
-	parameterTypeMap["int"]    = { "B" };
+	// TODO: add bool variant
+	parameterTypeMap["string"] = { "vehicle" };
+	parameterTypeMap["double"] = { "wing-length" };
+	parameterTypeMap["int"]    = { "AC", "horsepower", "wind-protector" };
 
-	ParameterCombinator paramCombinator(paramCombs, dontCares, dontCareKey, parameterTypeMap, printableParams);
+	ParameterCombinator paramCombinator(paramCombs, dontCares, parameterTypeMap, printableParams);
 
-	ParameterInstanceSetCompare cmp(dontCares, dontCareKey, parameterTypeMap);
+	ParameterInstanceSetCompare cmp(dontCares, parameterTypeMap);
 	auto expectedCombinationsSet = std::make_unique<parameterInstanceSet_t>(cmp);
 	std::vector<parameterInstanceMap_t> expectedCombinations
 	{
-		{{"A", "one"}, {"B", 1}, {"D", "three"}},
-		{{"A", "one"}, {"B", 1}, {"D", "four"}},
-		{{"A", "two"}, {"B", 1}, {"C", 1.1}},
-		{{"A", "two"}, {"B", 1}, {"C", 2.2}},
-		{{"A", "two"}, {"B", 1}, {"C", 3.3}},
+		{{"vehicle", "car"},       {"horsepower", 100}, {"AC", 0}},
+		{{"vehicle", "car"},       {"horsepower", 130}, {"AC", 0}},
+		{{"vehicle", "car"},       {"horsepower", 100}, {"AC", 1}},
+		{{"vehicle", "car"},       {"horsepower", 130}, {"AC", 1}},
+		{{"vehicle", "motorbike"}, {"horsepower", 100}, {"wind-protector", 0}},
+		{{"vehicle", "motorbike"}, {"horsepower", 130}, {"wind-protector", 0}},
+		{{"vehicle", "motorbike"}, {"horsepower", 100}, {"wind-protector", 1}},
+		{{"vehicle", "motorbike"}, {"horsepower", 130}, {"wind-protector", 1}},
+	};
+
+	const parameterInstanceSet_t& paramSet = paramCombinator.getParameterInstanceSet();
+
+	failed |= !(expectedCombinations.size() == paramSet.size());
+
+	for (auto& paramInstanceMap : expectedCombinations)
+	{
+		failed |= !(paramSet.count(paramInstanceMap));
+	}
+
+	if (failed)
+	{
+		printOutputAndExpected(paramSet, expectedCombinations);
+	}
+
+	return failed;
+
+}
+
+bool testCombinationWithMultipleDontCares()
+{
+	bool failed = false;
+	parameterCombinations_t paramCombs;
+	parameterTypeMap_t      parameterTypeMap;
+	printableParams_t		printableParams;
+
+	// List of parameters to test
+	paramCombs["vehicle"]          = { "car", "motorbike" };
+	paramCombs["horsepower"]       = { 100, 130 };
+	paramCombs["AC"]               = { 1 };
+	paramCombs["wind-protector"]   = { 0 };
+	paramCombs["wing-length"]      = { 30.3 };
+	paramCombs["motor"]            = { "gasoline", "diesel", "electric" };
+	paramCombs["fuel-consumption"] = { 2.3, 4.1 };
+
+	// List of parameters to be ignored in the combination
+	// TODO: support for dontCares with other key types
+	dontCares_t dontCares =
+	{
+		{"vehicle",
+			{
+				{"car",
+					{"wind-protector", "wing-length"}
+				},
+				{"motorbike",
+					{"AC", "wing-length"}
+				}
+			}
+		},
+		{"motor",
+			{
+				{"electric",
+					{"fuel-consumption"}
+				},
+			}
+		}
+	};
+
+	// Type of each of the parameters
+	// TODO: add bool variant
+	parameterTypeMap["string"] = { "vehicle", "motor"};
+	parameterTypeMap["double"] = { "wing-length", "fuel-consumption"};
+	parameterTypeMap["int"]    = { "AC", "horsepower", "wind-protector" };
+
+	ParameterCombinator paramCombinator(paramCombs, dontCares, parameterTypeMap, printableParams);
+
+	ParameterInstanceSetCompare cmp(dontCares, parameterTypeMap);
+	auto expectedCombinationsSet = std::make_unique<parameterInstanceSet_t>(cmp);
+	std::vector<parameterInstanceMap_t> expectedCombinations
+	{
+		{{"vehicle", "car"},       {"horsepower", 100}, {"motor", "gasoline"}, {"fuel-consumption", 2.3}, {"AC", 1}},
+		{{"vehicle", "car"},       {"horsepower", 130}, {"motor", "gasoline"}, {"fuel-consumption", 2.3}, {"AC", 1}},
+		{{"vehicle", "motorbike"}, {"horsepower", 100}, {"motor", "gasoline"}, {"fuel-consumption", 2.3}, {"wind-protector", 0}},
+		{{"vehicle", "motorbike"}, {"horsepower", 130}, {"motor", "gasoline"}, {"fuel-consumption", 2.3}, {"wind-protector", 0}},
+		{{"vehicle", "car"},       {"horsepower", 100}, {"motor", "gasoline"}, {"fuel-consumption", 4.1}, {"AC", 1}},
+		{{"vehicle", "car"},       {"horsepower", 130}, {"motor", "gasoline"}, {"fuel-consumption", 4.1}, {"AC", 1}},
+		{{"vehicle", "motorbike"}, {"horsepower", 100}, {"motor", "gasoline"}, {"fuel-consumption", 4.1}, {"wind-protector", 0}},
+		{{"vehicle", "motorbike"}, {"horsepower", 130}, {"motor", "gasoline"}, {"fuel-consumption", 4.1}, {"wind-protector", 0}},
+
+		{{"vehicle", "car"},       {"horsepower", 100}, {"motor", "diesel"}, {"fuel-consumption", 2.3}, {"AC", 1}},
+		{{"vehicle", "car"},       {"horsepower", 130}, {"motor", "diesel"}, {"fuel-consumption", 2.3}, {"AC", 1}},
+		{{"vehicle", "motorbike"}, {"horsepower", 100}, {"motor", "diesel"}, {"fuel-consumption", 2.3}, {"wind-protector", 0}},
+		{{"vehicle", "motorbike"}, {"horsepower", 130}, {"motor", "diesel"}, {"fuel-consumption", 2.3}, {"wind-protector", 0}},
+		{{"vehicle", "car"},       {"horsepower", 100}, {"motor", "diesel"}, {"fuel-consumption", 4.1}, {"AC", 1}},
+		{{"vehicle", "car"},       {"horsepower", 130}, {"motor", "diesel"}, {"fuel-consumption", 4.1}, {"AC", 1}},
+		{{"vehicle", "motorbike"}, {"horsepower", 100}, {"motor", "diesel"}, {"fuel-consumption", 4.1}, {"wind-protector", 0}},
+		{{"vehicle", "motorbike"}, {"horsepower", 130}, {"motor", "diesel"}, {"fuel-consumption", 4.1}, {"wind-protector", 0}},
+
+		{{"vehicle", "car"},       {"horsepower", 100}, {"motor", "electric"}, {"AC", 1}},
+		{{"vehicle", "car"},       {"horsepower", 130}, {"motor", "electric"}, {"AC", 1}},
+		{{"vehicle", "motorbike"}, {"horsepower", 100}, {"motor", "electric"}, {"wind-protector", 0}},
+		{{"vehicle", "motorbike"}, {"horsepower", 130}, {"motor", "electric"}, {"wind-protector", 0}},
 	};
 
 	const parameterInstanceSet_t& paramSet = paramCombinator.getParameterInstanceSet();
@@ -103,13 +228,16 @@ bool testCombinationWithDontCare()
 
 int main()
 {
-	bool failed;
-
+	bool failed = false;
+ 
 	failed = testSimpleCombination();
-	if (failed) std::cout << "testSimpleCombination failed" << std::endl;
+	if (failed) { std::cout << "testSimpleCombination failed" << std::endl; return failed; }
 
 	failed = testCombinationWithDontCare();
-	if (failed) std::cout << "testCombinationWithDontCare failed" << std::endl;
+	if (failed) { std::cout << "testCombinationWithDontCare failed" << std::endl; return failed; }
 
-    return failed;
+	failed = testCombinationWithMultipleDontCares();
+	if (failed) { std::cout << "testCombinationWithMultipleDontCares failed" << std::endl; return failed; }
+
+	return failed;
 }

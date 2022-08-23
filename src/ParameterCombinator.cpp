@@ -30,7 +30,7 @@ std::vector<std::vector<int64_t>> ParameterCombinator::CartesianProduct(std::vec
 	return accum;
 }
 
-ParameterCombinator::ParameterCombinator(parameterCombinations_t& paramCombs, dontCares_t& dontCares, std::string& dontCareKey,
+ParameterCombinator::ParameterCombinator(parameterCombinations_t& paramCombs, dontCares_t& dontCares,
 	parameterTypeMap_t& parameterTypeMap, printableParams_t& printableParameters)
 	: paramCombs_(paramCombs)
 	, parameterTypeMap_(parameterTypeMap)
@@ -93,7 +93,7 @@ ParameterCombinator::ParameterCombinator(parameterCombinations_t& paramCombs, do
 	}
 
 	// Remove repeated combinations taking into account don't care parameters
-	ParameterInstanceSetCompare cmp(dontCares, dontCareKey, parameterTypeMap_);
+	ParameterInstanceSetCompare cmp(dontCares, parameterTypeMap_);
 	parameterInstanceSet_ = std::make_unique<parameterInstanceSet_t>(cmp);
 
 	size_t combSize = newParamCombs[newParamCombs.begin()->first].size();
@@ -107,12 +107,16 @@ ParameterCombinator::ParameterCombinator(parameterCombinations_t& paramCombs, do
 			paramInstance[paramName] = paramValues[paramIdx];
 		}
 		// Remove paramter instance values that are irrelevant to the combination
-		if (!dontCareKey.empty())
+		for (auto& dontCare : dontCares)
 		{
-			std::string dontCareVal = std::get<std::string>(paramInstance[dontCareKey]);
-			for (auto& paramName : dontCares[dontCareVal])
+			const std::string& dontCareKey = dontCare.first;
+			if (!dontCareKey.empty())
 			{
-				paramInstance.erase(paramName);
+				std::string dontCareVal = std::get<std::string>(paramInstance[dontCareKey]);
+				for (auto& paramName : dontCare.second[dontCareVal])
+				{
+					paramInstance.erase(paramName);
+				}
 			}
 		}
 		parameterInstanceSet_->insert(paramInstance);
