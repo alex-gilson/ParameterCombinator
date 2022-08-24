@@ -40,8 +40,9 @@ struct ParameterInstanceSetCompare
 			for (auto& dontCare : dontCares_)
 			{
 				const std::string& dontCareKey = dontCare.first;
-				if (!dontCareKey.empty() && dontCare.second.count(std::get<std::string>(b.at(dontCareKey))) &&
-					dontCare.second.at(std::get<std::string>(b.at(dontCareKey))).count(param.first))
+				if ((param.first == dontCareKey && dontCare.second.empty()) // Total don't care. This parameter is completely ignored
+				|| (!dontCare.second.empty() && dontCare.second.count(std::get<std::string>(b.at(dontCareKey))) // Check if dontCareKey exists in map
+				&&  dontCare.second.at(std::get<std::string>(b.at(dontCareKey))).count(param.first))) // Does b care about param.first?
 				{
 					skip = true;
 					break;

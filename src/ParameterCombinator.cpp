@@ -110,13 +110,10 @@ ParameterCombinator::ParameterCombinator(parameterCombinations_t& paramCombs, do
 		for (auto& dontCare : dontCares)
 		{
 			const std::string& dontCareKey = dontCare.first;
-			if (!dontCareKey.empty())
+			std::string dontCareVal = std::get<std::string>(paramInstance[dontCareKey]);
+			for (auto& paramName : dontCare.second[dontCareVal])
 			{
-				std::string dontCareVal = std::get<std::string>(paramInstance[dontCareKey]);
-				for (auto& paramName : dontCare.second[dontCareVal])
-				{
-					paramInstance.erase(paramName);
-				}
+				paramInstance.erase(paramName);
 			}
 		}
 		parameterInstanceSet_->insert(paramInstance);

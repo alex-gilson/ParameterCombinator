@@ -27,7 +27,7 @@ bool testSimpleCombination()
 
 	// Type of each of the parameters
 	parameterTypeMap["string"] = { "vehicle" };
-	parameterTypeMap["int"]    = { "horsepower", "airbag"};
+	parameterTypeMap["int"]    = { "horsepower", "airbag" };
 
 	ParameterCombinator paramCombinator(paramCombs, dontCares, parameterTypeMap, printableParams);
 
@@ -79,7 +79,7 @@ bool testCombinationWithDontCare()
 	paramCombs["vehicle"]        = { "car", "motorbike" };
 	paramCombs["horsepower"]     = { 100, 130 };
 	paramCombs["AC"]             = { 0, 1 };
-	paramCombs["wind-protector"] = { 0, 1};
+	paramCombs["wind-protector"] = { 0, 1 };
 	paramCombs["wing-length"]    = { 30.3 };
 
 	// List of parameters to be ignored in the combination
@@ -153,6 +153,7 @@ bool testCombinationWithMultipleDontCares()
 	paramCombs["wing-length"]      = { 30.3 };
 	paramCombs["motor"]            = { "gasoline", "diesel", "electric" };
 	paramCombs["fuel-consumption"] = { 2.3, 4.1 };
+	paramCombs["nobody-cares"]     = { "1", "2", "3", "4" };
 
 	// List of parameters to be ignored in the combination
 	// TODO: support for dontCares with other key types
@@ -174,13 +175,14 @@ bool testCombinationWithMultipleDontCares()
 					{"fuel-consumption"}
 				},
 			}
-		}
+		},
+		{"nobody-cares",{}}
 	};
 
 	// Type of each of the parameters
 	// TODO: add bool variant
-	parameterTypeMap["string"] = { "vehicle", "motor"};
-	parameterTypeMap["double"] = { "wing-length", "fuel-consumption"};
+	parameterTypeMap["string"] = { "vehicle", "motor", "nobody-cares"};
+	parameterTypeMap["double"] = { "wing-length", "fuel-consumption" };
 	parameterTypeMap["int"]    = { "AC", "horsepower", "wind-protector" };
 
 	ParameterCombinator paramCombinator(paramCombs, dontCares, parameterTypeMap, printableParams);
@@ -198,14 +200,14 @@ bool testCombinationWithMultipleDontCares()
 		{{"vehicle", "motorbike"}, {"horsepower", 100}, {"motor", "gasoline"}, {"fuel-consumption", 4.1}, {"wind-protector", 0}},
 		{{"vehicle", "motorbike"}, {"horsepower", 130}, {"motor", "gasoline"}, {"fuel-consumption", 4.1}, {"wind-protector", 0}},
 
-		{{"vehicle", "car"},       {"horsepower", 100}, {"motor", "diesel"}, {"fuel-consumption", 2.3}, {"AC", 1}},
-		{{"vehicle", "car"},       {"horsepower", 130}, {"motor", "diesel"}, {"fuel-consumption", 2.3}, {"AC", 1}},
-		{{"vehicle", "motorbike"}, {"horsepower", 100}, {"motor", "diesel"}, {"fuel-consumption", 2.3}, {"wind-protector", 0}},
-		{{"vehicle", "motorbike"}, {"horsepower", 130}, {"motor", "diesel"}, {"fuel-consumption", 2.3}, {"wind-protector", 0}},
-		{{"vehicle", "car"},       {"horsepower", 100}, {"motor", "diesel"}, {"fuel-consumption", 4.1}, {"AC", 1}},
-		{{"vehicle", "car"},       {"horsepower", 130}, {"motor", "diesel"}, {"fuel-consumption", 4.1}, {"AC", 1}},
-		{{"vehicle", "motorbike"}, {"horsepower", 100}, {"motor", "diesel"}, {"fuel-consumption", 4.1}, {"wind-protector", 0}},
-		{{"vehicle", "motorbike"}, {"horsepower", 130}, {"motor", "diesel"}, {"fuel-consumption", 4.1}, {"wind-protector", 0}},
+		{{"vehicle", "car"},       {"horsepower", 100}, {"motor", "diesel"},   {"fuel-consumption", 2.3}, {"AC", 1}},
+		{{"vehicle", "car"},       {"horsepower", 130}, {"motor", "diesel"},   {"fuel-consumption", 2.3}, {"AC", 1}},
+		{{"vehicle", "motorbike"}, {"horsepower", 100}, {"motor", "diesel"},   {"fuel-consumption", 2.3}, {"wind-protector", 0}},
+		{{"vehicle", "motorbike"}, {"horsepower", 130}, {"motor", "diesel"},   {"fuel-consumption", 2.3}, {"wind-protector", 0}},
+		{{"vehicle", "car"},       {"horsepower", 100}, {"motor", "diesel"},   {"fuel-consumption", 4.1}, {"AC", 1}},
+		{{"vehicle", "car"},       {"horsepower", 130}, {"motor", "diesel"},   {"fuel-consumption", 4.1}, {"AC", 1}},
+		{{"vehicle", "motorbike"}, {"horsepower", 100}, {"motor", "diesel"},   {"fuel-consumption", 4.1}, {"wind-protector", 0}},
+		{{"vehicle", "motorbike"}, {"horsepower", 130}, {"motor", "diesel"},   {"fuel-consumption", 4.1}, {"wind-protector", 0}},
 
 		{{"vehicle", "car"},       {"horsepower", 100}, {"motor", "electric"}, {"AC", 1}},
 		{{"vehicle", "car"},       {"horsepower", 130}, {"motor", "electric"}, {"AC", 1}},
@@ -229,7 +231,7 @@ bool testCombinationWithMultipleDontCares()
 int main()
 {
 	bool failed = false;
- 
+
 	failed = testSimpleCombination();
 	if (failed) { std::cout << "testSimpleCombination failed" << std::endl; return failed; }
 
