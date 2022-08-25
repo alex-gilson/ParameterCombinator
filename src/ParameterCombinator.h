@@ -6,6 +6,7 @@
 #include <variant>
 #include <memory>
 #include <vector>
+#include <stdexcept>
 
 using var_t = std::variant<int, float, double, std::string>;
 using parameterInstanceMap_t  = std::map<std::string, var_t >;
@@ -61,19 +62,23 @@ struct ParameterInstanceSetCompare
 					else
 						return std::get<std::string>(param.second) < std::get<std::string>(b.at(param.first));
 				}
-				if (parameterTypeMap_.at("double").count(param.first))
+				else if (parameterTypeMap_.at("double").count(param.first))
 				{
 					if (std::get<double>(param.second) == std::get<double>(b.at(param.first)))
 						continue;
 					else
 						return std::get<double>(param.second) < std::get<double>(b.at(param.first));
 				}
-				else
+				else if (parameterTypeMap_.at("int").count(param.first))
 				{
 					if (std::get<int>(param.second) == std::get<int>(b.at(param.first)))
 						continue;
 					else
 						return std::get<int>(param.second) < std::get<int>(b.at(param.first));
+				}
+				else
+				{
+					std::throw_with_nested(std::runtime_error(std::string{ param.first + " is of unkown type. Register it in parameterTypeMap." }));
 				}
 			}
 		}
