@@ -92,20 +92,16 @@ class ParameterCombinator
 {
 public:
 
-	ParameterCombinator(parameterCombinations_t& paramCombs, dontCares_t& dontCares,
-		parameterTypeMap_t& parameterTypeMap, printableParams_t& printableParameters);
+	ParameterCombinator(parameterTypeMap_t& parameterTypeMap, printableParams_t& printableParameters);
 	ParameterCombinator(const ParameterCombinator& other);
 	std::string constructVariationName(const parameterInstanceMap_t& paramInstance);
 	const parameterInstanceSet_t& getParameterInstanceSet();
-	const parameterCombinations_t* getParameterCombinations();
-	void addParametersWithoutRecombining(parameterCombinations_t& paramCombs, dontCares_t& dontCares,
-		std::string& dontCareKey, parameterTypeMap_t& parameterTypeMap);
+	void combine(parameterCombinations_t& paramCombs, dontCares_t& dontCares);
 private:
 	std::vector<std::vector<int64_t>> CartesianProduct(std::vector<std::vector<int64_t>>& sequences);
 	void CartesianRecurse(std::vector<std::vector<int64_t>>& accum, std::vector<int64_t> stack,
 		std::vector<std::vector<int64_t>> sequences, int64_t index);
 
-	parameterCombinations_t paramCombs_;
 	parameterTypeMap_t parameterTypeMap_;
 	printableParams_t printableParameters_;
 	std::unique_ptr<parameterInstanceSet_t> parameterInstanceSet_;

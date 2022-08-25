@@ -29,7 +29,8 @@ bool testSimpleCombination()
 	parameterTypeMap["string"] = { "vehicle" };
 	parameterTypeMap["int"]    = { "horsepower", "airbag" };
 
-	ParameterCombinator paramCombinator(paramCombs, dontCares, parameterTypeMap, printableParams);
+	ParameterCombinator paramCombinator(parameterTypeMap, printableParams);
+	paramCombinator.combine(paramCombs, dontCares);
 
 	ParameterInstanceSetCompare cmp(dontCares, parameterTypeMap);
 	auto expectedCombinationsSet = std::make_unique<parameterInstanceSet_t>(cmp);
@@ -99,12 +100,12 @@ bool testCombinationWithDontCare()
 	};
 
 	// Type of each of the parameters
-	// TODO: add bool variant
 	parameterTypeMap["string"] = { "vehicle" };
 	parameterTypeMap["double"] = { "wing-length" };
-	parameterTypeMap["int"]    = { "AC", "horsepower", "wind-protector" };
+	parameterTypeMap["int"]    = { "horsepower", "AC", "wind-protector" };
 
-	ParameterCombinator paramCombinator(paramCombs, dontCares, parameterTypeMap, printableParams);
+	ParameterCombinator paramCombinator(parameterTypeMap, printableParams);
+	paramCombinator.combine(paramCombs, dontCares);
 
 	ParameterInstanceSetCompare cmp(dontCares, parameterTypeMap);
 	auto expectedCombinationsSet = std::make_unique<parameterInstanceSet_t>(cmp);
@@ -180,12 +181,12 @@ bool testCombinationWithMultipleDontCares()
 	};
 
 	// Type of each of the parameters
-	// TODO: add bool variant
 	parameterTypeMap["string"] = { "vehicle", "motor", "nobody-cares"};
 	parameterTypeMap["double"] = { "wing-length", "fuel-consumption" };
-	parameterTypeMap["int"]    = { "AC", "horsepower", "wind-protector" };
+	parameterTypeMap["int"]    = { "horsepower", "AC", "wind-protector" };
 
-	ParameterCombinator paramCombinator(paramCombs, dontCares, parameterTypeMap, printableParams);
+	ParameterCombinator paramCombinator(parameterTypeMap, printableParams);
+	paramCombinator.combine(paramCombs, dontCares);
 
 	ParameterInstanceSetCompare cmp(dontCares, parameterTypeMap);
 	auto expectedCombinationsSet = std::make_unique<parameterInstanceSet_t>(cmp);

@@ -30,11 +30,7 @@ std::vector<std::vector<int64_t>> ParameterCombinator::CartesianProduct(std::vec
 	return accum;
 }
 
-ParameterCombinator::ParameterCombinator(parameterCombinations_t& paramCombs, dontCares_t& dontCares,
-	parameterTypeMap_t& parameterTypeMap, printableParams_t& printableParameters)
-	: paramCombs_(paramCombs)
-	, parameterTypeMap_(parameterTypeMap)
-	, printableParameters_(printableParameters)
+void ParameterCombinator::combine(parameterCombinations_t& paramCombs, dontCares_t& dontCares)
 {
 	// Convert parameterCombinations_t to a vector of vector of ints
 	std::vector<std::vector<int64_t>> sequences;
@@ -118,6 +114,13 @@ ParameterCombinator::ParameterCombinator(parameterCombinations_t& paramCombs, do
 		}
 		parameterInstanceSet_->insert(paramInstance);
 	}
+
+}
+
+ParameterCombinator::ParameterCombinator(parameterTypeMap_t& parameterTypeMap, printableParams_t& printableParameters)
+	: parameterTypeMap_(parameterTypeMap)
+	, printableParameters_(printableParameters)
+{
 }
 
 ParameterCombinator::ParameterCombinator(const ParameterCombinator& other)
@@ -169,27 +172,3 @@ const parameterInstanceSet_t& ParameterCombinator::getParameterInstanceSet()
 	return *parameterInstanceSet_.get();
 }
 
-const parameterCombinations_t* ParameterCombinator::getParameterCombinations()
-{
-	return &paramCombs_;
-}
-
-void ParameterCombinator::addParametersWithoutRecombining(parameterCombinations_t& paramCombs, dontCares_t& dontCares,
-	std::string& dontCareKey, parameterTypeMap_t& parameterTypeMap)
-{
-	for (size_t paramIdx = 0; paramIdx < paramCombs["freq"].size(); paramIdx++)
-	{
-		// Copy all parameterInstanceMaps with the new paramCombs modification and reinsert it into the set
-		for (auto parameterInstanceMap : *parameterInstanceSet_.get())
-		{
-			parameterInstanceMap["freq"] = paramCombs["freq"][paramIdx];
-			parameterInstanceSet_->insert(parameterInstanceMap);
-		}
-		parameterInstanceMap_t paramInstance;
-		for (auto& [paramName, paramValues] : paramCombs) {
-			paramInstance[paramName] = paramValues[paramIdx];
-		}
-		parameterInstanceSet_->insert(paramInstance);
-	}
-
-}
