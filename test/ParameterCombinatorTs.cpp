@@ -1,6 +1,20 @@
 #include "ParameterCombinator.h"
 #include <iostream>
 
+bool checkEquality(std::vector<parameterInstanceMap_t>& expectedCombinations, ParameterCombinator& paramCombinator)
+{
+	bool failed = false;
+	const parameterInstanceSet_t* paramSet = paramCombinator.getParameterInstanceSet();
+
+	failed |= !(expectedCombinations.size() == paramSet->size());
+
+	for (auto& paramInstanceMap : expectedCombinations)
+	{
+		failed |= !(paramSet->count(paramInstanceMap));
+	}
+	return failed;
+}
+
 bool testSimpleCombination()
 {
 	bool failed = false;
@@ -39,16 +53,7 @@ bool testSimpleCombination()
 		{{"vehicle", "motorbike"}, {"horsepower", 130}, {"airbag", 1}},
 	};
 
-	const parameterInstanceSet_t* paramSet = paramCombinator.getParameterInstanceSet();
-
-	failed |= !(expectedCombinations.size() == paramSet->size());
-
-	for (auto& paramInstanceMap : expectedCombinations)
-	{
-		failed |= !(paramSet->count(paramInstanceMap));
-	}
-
-	return failed;
+	return checkEquality(expectedCombinations, paramCombinator);
 
 }
 
@@ -102,22 +107,12 @@ bool testCombinationWithDontCare()
 		{{"vehicle", "motorbike"}, {"horsepower", 130}, {"wind-protector", 1}},
 	};
 
-	const parameterInstanceSet_t* paramSet = paramCombinator.getParameterInstanceSet();
-
-	failed |= !(expectedCombinations.size() == paramSet->size());
-
-	for (auto& paramInstanceMap : expectedCombinations)
-	{
-		failed |= !(paramSet->count(paramInstanceMap));
-	}
-
-	return failed;
+	return checkEquality(expectedCombinations, paramCombinator);
 
 }
 
 bool testCombinationWithMultipleDontCares()
 {
-	bool failed = false;
 	parameterCombinations_t paramCombs;
 	parameterTypeMap_t      parameterTypeMap;
 	printableParams_t		printableParams;
@@ -190,16 +185,7 @@ bool testCombinationWithMultipleDontCares()
 		{{"vehicle", "motorbike"}, {"horsepower", 130}, {"motor", "electric"}, {"wind-protector", 0}},
 	};
 
-	const parameterInstanceSet_t* paramSet = paramCombinator.getParameterInstanceSet();
-
-	failed |= !(expectedCombinations.size() == paramSet->size());
-
-	for (auto& paramInstanceMap : expectedCombinations)
-	{
-		failed |= !(paramSet->count(paramInstanceMap));
-	}
-
-	return failed;
+	return checkEquality(expectedCombinations, paramCombinator);
 
 }
 
@@ -241,14 +227,7 @@ bool testSimpleRecombination()
 		{{"vehicle", "motorbike"}, {"horsepower", 130}, {"motor", "gasoline"}},
 	};
 
-	const parameterInstanceSet_t* paramSet = paramCombinator.getParameterInstanceSet();
-
-	failed |= !(expectedCombinations.size() == paramSet->size());
-
-	for (auto& paramInstanceMap : expectedCombinations)
-	{
-		failed |= !(paramSet->count(paramInstanceMap));
-	}
+	failed |= checkEquality(expectedCombinations, paramCombinator);
 
 	// Test that we can change dontCares
 	dontCares =
@@ -268,12 +247,7 @@ bool testSimpleRecombination()
 		{{"vehicle", "motorbike"}, {"horsepower", 130}},
 	};
 
-	failed |= !(expectedCombinations.size() == paramSet->size());
-
-	for (auto& paramInstanceMap : expectedCombinations)
-	{
-		failed |= !(paramSet->count(paramInstanceMap));
-	}
+	failed |= checkEquality(expectedCombinations, paramCombinator);
 
 	// Test that we can change paramCombs and that dontCares has an element that doesn't exist
 	paramCombs.clear();
@@ -282,6 +256,71 @@ bool testSimpleRecombination()
 	paramCombs["horsepower"] = { 100 };
 
 	paramCombinator.combine(paramCombs, dontCares);
+
+	expectedCombinations = std::vector<parameterInstanceMap_t>
+	{
+		{{"vehicle", "car"},       {"horsepower", 100}},
+		{{"vehicle", "motorbike"}, {"horsepower", 100}},
+	};
+
+	failed |= checkEquality(expectedCombinations, paramCombinator);
+
+	return failed;
+
+}
+
+bool testCombinationAddition()
+{
+	bool failed = false;
+	parameterCombinations_t paramCombs;
+	parameterTypeMap_t      parameterTypeMap;
+	printableParams_t		printableParams;
+
+	// List of parameters to test
+	paramCombs["vehicle"]    = { "car" };
+	paramCombs["horsepower"] = { 100, 120 };
+	paramCombs["airbag"]     = { 0, 1 };
+
+	// Type of each of the parameters
+	parameterTypeMap["string"] = { "vehicle" };
+	parameterTypeMap["int"]    = { "horsepower", "airbag" };
+
+	// List of parameters to be ignored in the combination
+	dontCares_t dontCares{};
+
+	ParameterCombinator paramCombinator1(parameterTypeMap, printableParams);
+	paramCombinator1.combine(paramCombs, dontCares);
+
+	std::vector<parameterInstanceMap_t> expectedCombinations
+	{
+		{{"vehicle", "car"}, {"horsepower", 100}, {"airbag", 0}},
+		{{"vehicle", "car"}, {"horsepower", 100}, {"airbag", 1}},
+		{{"vehicle", "car"}, {"horsepower", 120}, {"airbag", 0}},
+		{{"vehicle", "car"}, {"horsepower", 120}, {"airbag", 1}},
+	};
+
+	failed |= checkEquality(expectedCombinations, paramCombinator1);
+
+	paramCombs.clear();
+	paramCombs["vehicle"]    = { "motorbike" };
+	paramCombs["horsepower"] = { 100, 130 };
+	paramCombs["airbag"]     = { 0, 1 };
+
+	ParameterCombinator paramCombinator2(parameterTypeMap, printableParams);
+	paramCombinator2.combine(paramCombs, dontCares);
+
+	expectedCombinations = std::vector<parameterInstanceMap_t>
+	{
+		{{"vehicle", "motorbike"}, {"horsepower", 100}, {"airbag", 0}},
+		{{"vehicle", "motorbike"}, {"horsepower", 100}, {"airbag", 1}},
+		{{"vehicle", "motorbike"}, {"horsepower", 130}, {"airbag", 0}},
+		{{"vehicle", "motorbike"}, {"horsepower", 130}, {"airbag", 1}},
+	};
+
+	failed |= checkEquality(expectedCombinations, paramCombinator2);
+
+	// Test addition maintaining the same dontCare
+	//ParameterCombinator paramCombinator3 = paramCombinator1 + paramCombinator2;
 
 	return failed;
 
@@ -302,6 +341,9 @@ int main()
 
 	failed = testSimpleRecombination();
 	if (failed) { std::cout << "testSimpleRecombination failed" << std::endl; return failed; }
+
+	failed = testCombinationAddition();
+	if (failed) { std::cout << "testCombinationAddition failed" << std::endl; return failed; }
 
 	return failed;
 }
