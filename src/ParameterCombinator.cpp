@@ -32,6 +32,7 @@ std::vector<std::vector<int64_t>> ParameterCombinator::CartesianProduct(std::vec
 
 void ParameterCombinator::combine(parameterCombinations_t& paramCombs, dontCares_t& dontCares)
 {
+
 	// Convert parameterCombinations_t to a vector of vector of ints
 	std::vector<std::vector<int64_t>> sequences;
 	for (auto& param : paramCombs) {
@@ -90,7 +91,7 @@ void ParameterCombinator::combine(parameterCombinations_t& paramCombs, dontCares
 
 	// Remove repeated combinations taking into account don't care parameters
 	ParameterInstanceSetCompare cmp(dontCares, parameterTypeMap_);
-	parameterInstanceSet_ = std::make_unique<parameterInstanceSet_t>(cmp);
+	*parameterInstanceSet_.get() = parameterInstanceSet_t(cmp);
 
 	size_t combSize = newParamCombs[newParamCombs.begin()->first].size();
 
@@ -106,6 +107,10 @@ void ParameterCombinator::combine(parameterCombinations_t& paramCombs, dontCares
 		for (auto& dontCare : dontCares)
 		{
 			const std::string& dontCareKey = dontCare.first;
+			if (!paramInstance.count(dontCareKey))
+			{
+				continue;
+			}
 			std::string dontCareVal = std::get<std::string>(paramInstance[dontCareKey]);
 			for (auto& paramName : dontCare.second[dontCareVal])
 			{
@@ -121,6 +126,8 @@ ParameterCombinator::ParameterCombinator(parameterTypeMap_t& parameterTypeMap, p
 	: parameterTypeMap_(parameterTypeMap)
 	, printableParameters_(printableParameters)
 {
+	ParameterInstanceSetCompare cmp(dontCares_t{}, parameterTypeMap_t{});
+	parameterInstanceSet_ = std::make_unique<parameterInstanceSet_t>(cmp);
 }
 
 ParameterCombinator::ParameterCombinator(const ParameterCombinator& other)
@@ -167,8 +174,8 @@ std::string ParameterCombinator::constructVariationName(const parameterInstanceM
 
 }
 
-const parameterInstanceSet_t& ParameterCombinator::getParameterInstanceSet()
+const parameterInstanceSet_t* ParameterCombinator::getParameterInstanceSet()
 {
-	return *parameterInstanceSet_.get();
+	return parameterInstanceSet_.get();
 }
 

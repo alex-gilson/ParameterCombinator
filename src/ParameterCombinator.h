@@ -17,14 +17,10 @@ using parameterTypeMap_t = stringSetMap_t;
 using printableParams_t = std::set<std::string>;
 using dontCares_t = std::unordered_map<std::string, std::unordered_map<std::string, stringSet_t>>;
 
-// If stringSetMap_t is empty, ignore all comparisons of dontCareKey_t
-// Else just the ones specific to that dontCareKey_t element
-//using dontCares_t = std::vector<std::pair<dontCareKey_t, stringSetMap_t > >;
-
 struct ParameterInstanceSetCompare
 {
-	const dontCares_t dontCares_;
-	const parameterTypeMap_t parameterTypeMap_;
+	dontCares_t dontCares_;
+	parameterTypeMap_t parameterTypeMap_;
 	ParameterInstanceSetCompare()
 		: dontCares_()
 		, parameterTypeMap_()
@@ -33,6 +29,12 @@ struct ParameterInstanceSetCompare
 		: dontCares_(dontCares)
 		, parameterTypeMap_(parameterTypeMap)
 	{};
+	ParameterInstanceSetCompare& operator=(const ParameterInstanceSetCompare& other)
+	{
+		dontCares_ = other.dontCares_;
+		parameterTypeMap_ = other.parameterTypeMap_;
+		return *this;
+	}
 	bool operator()(const parameterInstanceMap_t& a, const parameterInstanceMap_t& b) const
 	{
 		for (auto& param : a)
@@ -42,7 +44,7 @@ struct ParameterInstanceSetCompare
 			{
 				const std::string& dontCareKey = dontCare.first;
 				if ((param.first == dontCareKey && dontCare.second.empty()) // Total don't care. This parameter is completely ignored
-				|| (!dontCare.second.empty() && dontCare.second.count(std::get<std::string>(b.at(dontCareKey))) // Check if dontCareKey exists in map
+				|| (!dontCare.second.empty() && b.count(dontCareKey) && dontCare.second.count(std::get<std::string>(b.at(dontCareKey)))
 				&&  dontCare.second.at(std::get<std::string>(b.at(dontCareKey))).count(param.first))) // Does b care about param.first?
 				{
 					skip = true;
@@ -95,7 +97,7 @@ public:
 	ParameterCombinator(parameterTypeMap_t& parameterTypeMap, printableParams_t& printableParameters);
 	ParameterCombinator(const ParameterCombinator& other);
 	std::string constructVariationName(const parameterInstanceMap_t& paramInstance);
-	const parameterInstanceSet_t& getParameterInstanceSet();
+	const parameterInstanceSet_t* getParameterInstanceSet();
 	void combine(parameterCombinations_t& paramCombs, dontCares_t& dontCares);
 private:
 	std::vector<std::vector<int64_t>> CartesianProduct(std::vector<std::vector<int64_t>>& sequences);
