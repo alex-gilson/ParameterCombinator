@@ -12,10 +12,10 @@ using var_t = std::variant<int, float, double, std::string>;
 using parameterInstanceMap_t  = std::map<std::string, var_t >;
 using parameterCombinations_t = std::unordered_map<std::string, std::vector<var_t> >;
 using stringSet_t = std::set<std::string>;
-using stringSetMap_t = std::unordered_map<std::string, std::set<std::string> >;
+using stringSetMap_t = std::unordered_map<std::string, stringSet_t >;
 using parameterTypeMap_t = stringSetMap_t;
-using printableParams_t = std::set<std::string>;
-using dontCares_t = std::unordered_map<std::string, std::unordered_map<std::string, stringSet_t>>;
+using printableParams_t = stringSet_t;
+using dontCares_t = std::unordered_map<std::string, stringSetMap_t>;
 
 struct ParameterInstanceSetCompare
 {
@@ -96,16 +96,22 @@ public:
 
 	ParameterCombinator(parameterTypeMap_t& parameterTypeMap, printableParams_t& printableParameters);
 	ParameterCombinator(const ParameterCombinator& other);
+	ParameterCombinator& operator=(const ParameterCombinator& other);
 	std::string constructVariationName(const parameterInstanceMap_t& paramInstance);
-	const parameterInstanceSet_t* getParameterInstanceSet();
+	const parameterInstanceSet_t* getParameterInstanceSet() const;
 	void combine(parameterCombinations_t& paramCombs, dontCares_t& dontCares);
+	void clearCombinations();
+	static ParameterCombinator addCombinators(const ParameterCombinator& leftParamCombinator,
+			const ParameterCombinator& rightParamCombinator, const dontCares_t& dontCare);
+	parameterTypeMap_t parameterTypeMap_;
+	printableParams_t printableParameters_;
 private:
 	std::vector<std::vector<int64_t>> CartesianProduct(std::vector<std::vector<int64_t>>& sequences);
 	void CartesianRecurse(std::vector<std::vector<int64_t>>& accum, std::vector<int64_t> stack,
 		std::vector<std::vector<int64_t>> sequences, int64_t index);
 
-	parameterTypeMap_t parameterTypeMap_;
-	printableParams_t printableParameters_;
 	std::unique_ptr<parameterInstanceSet_t> parameterInstanceSet_;
 
 };
+
+

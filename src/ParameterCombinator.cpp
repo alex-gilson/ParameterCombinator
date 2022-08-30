@@ -137,6 +137,14 @@ ParameterCombinator::ParameterCombinator(const ParameterCombinator& other)
 	parameterInstanceSet_ = std::make_unique<parameterInstanceSet_t>(*other.parameterInstanceSet_.get());
 }
 
+ParameterCombinator& ParameterCombinator::operator=(const ParameterCombinator& other)
+{
+	parameterTypeMap_ = other.parameterTypeMap_;
+	printableParameters_ = other.printableParameters_;
+	parameterInstanceSet_.reset(new parameterInstanceSet_t{ *other.parameterInstanceSet_.get()});
+	return *this;
+}
+
 std::string ParameterCombinator::constructVariationName(const parameterInstanceMap_t& paramInstance)
 {
 	std::string variationName;
@@ -173,9 +181,72 @@ std::string ParameterCombinator::constructVariationName(const parameterInstanceM
 	return variationName;
 
 }
+void ParameterCombinator::clearCombinations()
+{
+	parameterInstanceSet_.get()->clear();
+}
 
-const parameterInstanceSet_t* ParameterCombinator::getParameterInstanceSet()
+const parameterInstanceSet_t* ParameterCombinator::getParameterInstanceSet() const
 {
 	return parameterInstanceSet_.get();
 }
 
+parameterTypeMap_t operator+(const parameterTypeMap_t& leftParamTypeMap, const parameterTypeMap_t& rightParamTypeMap)
+{
+	parameterTypeMap_t sum;
+	// Check that the parameterTypeMaps are the same for the shared keys
+	for (auto& parameterType : leftParamTypeMap)
+	{
+		if (rightParamTypeMap.count(parameterType.first)
+			&& rightParamTypeMap.at(parameterType.first) != parameterType.second)
+		{
+			std::throw_with_nested(std::runtime_error("Can't add parameterTypeMaps: Conflicting values."));
+		}
+	}
+	for (auto& parameterTypeMap : { leftParamTypeMap, rightParamTypeMap })
+	{
+		for (auto& parameterType : parameterTypeMap)
+		{
+			sum.insert(parameterType);
+		}
+	}
+
+	return sum;
+}
+
+printableParams_t operator+(const printableParams_t& leftPrintableParam, const printableParams_t& rightPrintableParam)
+{
+	printableParams_t sum;
+	for (auto& printableParameters : { leftPrintableParam, rightPrintableParam })
+	{
+		for (auto& printableParameter : printableParameters)
+		{
+			sum.insert(printableParameter);
+		}
+	}
+	return sum;
+}
+
+
+ParameterCombinator ParameterCombinator::addCombinators(const ParameterCombinator& leftParamCombinator,
+				const ParameterCombinator& rightParamCombinator, const dontCares_t& dontCares)
+{
+	const parameterInstanceSet_t* leftParamSet  = leftParamCombinator.getParameterInstanceSet();
+	const parameterInstanceSet_t* rightParamSet = rightParamCombinator.getParameterInstanceSet();
+	parameterTypeMap_t sumParameterTypeMap = leftParamCombinator.parameterTypeMap_ + rightParamCombinator.parameterTypeMap_;
+	printableParams_t  printableParams = leftParamCombinator.printableParameters_ + rightParamCombinator.printableParameters_;
+
+	ParameterCombinator resultCombinator(sumParameterTypeMap, printableParams);
+	ParameterInstanceSetCompare cmp(dontCares, sumParameterTypeMap);
+	parameterInstanceSet_t* sum = new parameterInstanceSet_t(cmp);
+
+	for (auto& paramSet : { *leftParamSet, *rightParamSet })
+	{
+		for (auto& paramInstance : paramSet)
+		{
+			sum->insert(paramInstance);
+		}
+	}
+	resultCombinator.parameterInstanceSet_.reset(sum);
+	return resultCombinator;
+}

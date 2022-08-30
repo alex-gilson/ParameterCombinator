@@ -17,7 +17,6 @@ bool checkEquality(std::vector<parameterInstanceMap_t>& expectedCombinations, Pa
 
 bool testSimpleCombination()
 {
-	bool failed = false;
 	parameterCombinations_t paramCombs;
 	parameterTypeMap_t      parameterTypeMap;
 	printableParams_t		printableParams;
@@ -59,7 +58,6 @@ bool testSimpleCombination()
 
 bool testCombinationWithDontCare()
 {
-	bool failed = false;
 	parameterCombinations_t paramCombs;
 	parameterTypeMap_t      parameterTypeMap;
 	printableParams_t		printableParams;
@@ -319,8 +317,48 @@ bool testCombinationAddition()
 
 	failed |= checkEquality(expectedCombinations, paramCombinator2);
 
-	// Test addition maintaining the same dontCare
-	//ParameterCombinator paramCombinator3 = paramCombinator1 + paramCombinator2;
+	// Test addition maintaining the same dontCares
+	ParameterCombinator paramCombinator3 = ParameterCombinator::addCombinators(paramCombinator1, paramCombinator2, dontCares);
+
+	expectedCombinations = std::vector<parameterInstanceMap_t>
+	{
+		{{"vehicle", "car"},       {"horsepower", 100}, {"airbag", 0}},
+		{{"vehicle", "car"},       {"horsepower", 100}, {"airbag", 1}},
+		{{"vehicle", "car"},       {"horsepower", 120}, {"airbag", 0}},
+		{{"vehicle", "car"},       {"horsepower", 120}, {"airbag", 1}},
+		{{"vehicle", "motorbike"}, {"horsepower", 100}, {"airbag", 0}},
+		{{"vehicle", "motorbike"}, {"horsepower", 100}, {"airbag", 1}},
+		{{"vehicle", "motorbike"}, {"horsepower", 130}, {"airbag", 0}},
+		{{"vehicle", "motorbike"}, {"horsepower", 130}, {"airbag", 1}},
+	};
+
+	failed |= checkEquality(expectedCombinations, paramCombinator3);
+
+	//dontCares =
+	//{
+	//	{"vehicle",
+	//		{
+	//			{"motorbike",
+	//				{"airbag"}
+	//			},
+	//		}
+	//	},
+	//};
+
+	//// Test addition with a different dontCares
+	//ParameterCombinator paramCombinator4 = ParameterCombinator::addCombinators(paramCombinator1, paramCombinator2, dontCares);
+
+	//expectedCombinations = std::vector<parameterInstanceMap_t>
+	//{
+	//	{{"vehicle", "car"},      {"horsepower", 100}, {"airbag", 0}},
+	//	{{"vehicle", "car"},      {"horsepower", 100}, {"airbag", 1}},
+	//	{{"vehicle", "car"},      {"horsepower", 130}, {"airbag", 0}},
+	//	{{"vehicle", "car"},      {"horsepower", 130}, {"airbag", 1}},
+	//	{{"vehicle", "motorbike"},{"horsepower", 100}},
+	//	{{"vehicle", "motorbike"},{"horsepower", 120}},
+	//};
+
+	//failed |= checkEquality(expectedCombinations, paramCombinator4);
 
 	return failed;
 
