@@ -97,7 +97,6 @@ public:
 	ParameterCombinator(parameterTypeMap_t& parameterTypeMap, printableParams_t& printableParameters);
 	ParameterCombinator(const ParameterCombinator& other);
 	ParameterCombinator& operator=(const ParameterCombinator& other);
-	std::string constructVariationName(const parameterInstanceMap_t& paramInstance);
 	const parameterInstanceSet_t* getParameterInstanceSet() const;
 	void combine(parameterCombinations_t& paramCombs, dontCares_t& dontCares);
 	void clearCombinations();

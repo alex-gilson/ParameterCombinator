@@ -145,42 +145,6 @@ ParameterCombinator& ParameterCombinator::operator=(const ParameterCombinator& o
 	return *this;
 }
 
-std::string ParameterCombinator::constructVariationName(const parameterInstanceMap_t& paramInstance)
-{
-	std::string variationName;
-	for (auto [paramName, paramValue] : paramInstance)
-	{
-		if (!printableParameters_.count(paramName))
-		{
-			continue;
-		}
-		if (paramName == "inputFile" || paramName == "signal")
-		{
-			variationName += std::get<std::string>(paramValue) + "_";
-		}
-		else if (paramName == "algo")
-		{
-			variationName += paramName + "_" + std::get<std::string>(paramValue) + "_";
-		} 
-		else if (parameterTypeMap_["double"].count(paramName))
-		{
-			std::stringstream ss;
-			ss << std::get<double>(paramValue) << std::scientific;
-			variationName += paramName + "_" + ss.str() + "_";
-		}
-		else
-		{
-			variationName += paramName + "_" + std::to_string(std::get<int>(paramValue)) + "_";
-		}
-	}
-
-	// Remove trailing "_"
-	size_t lastIndex = variationName.find_last_of("_");
-	variationName = variationName.substr(0, lastIndex);
-
-	return variationName;
-
-}
 void ParameterCombinator::clearCombinations()
 {
 	parameterInstanceSet_.get()->clear();
