@@ -1,0 +1,77 @@
+#include "Parameters.h"
+#include <iostream>
+
+// ParameterBase operators
+
+bool operator==(const ParameterBase& lhs, const ParameterBase& rhs) {
+	return typeid(lhs) == typeid(rhs)
+		&& lhs.isEqual(rhs);
+}
+
+bool operator<(const ParameterBase& lhs, const ParameterBase& rhs) {
+	if (typeid(lhs) == typeid(rhs))
+	{
+		return lhs.isLowerThan(rhs);
+	}
+	else
+	{
+		return typeid(lhs).hash_code() < typeid(rhs).hash_code();
+	}
+}
+
+bool operator>(const ParameterBase& lhs, const ParameterBase& rhs) {
+	if (typeid(lhs) == typeid(rhs))
+	{
+		return !lhs.isLowerThan(rhs) && !lhs.isEqual(rhs);
+	}
+	else
+	{
+		return typeid(lhs).hash_code() > typeid(rhs).hash_code();
+	}
+}
+
+// Parameter operators
+
+bool operator==(const Parameter& lhs, const Parameter& rhs)
+{
+	return *lhs.param_ == *rhs.param_;
+}
+bool operator!=(const Parameter& lhs, const Parameter& rhs)
+{
+	return !(*lhs.param_ == *rhs.param_);
+}
+bool operator<(const Parameter& lhs, const Parameter& rhs)
+{
+	return *lhs.param_ < *rhs.param_;
+}
+bool operator<=(const Parameter& lhs, const Parameter& rhs)
+{
+	return (*lhs.param_ < *rhs.param_) || (*lhs.param_ == *rhs.param_);
+}
+bool operator>(const Parameter& lhs, const Parameter& rhs)
+{
+	return *lhs.param_ > *rhs.param_;
+}
+bool operator>=(const Parameter& lhs, const Parameter& rhs)
+{
+	return (*lhs.param_ > *rhs.param_) || (*lhs.param_ == *rhs.param_);
+}
+
+// Function definitions
+
+ParametersVec::ParametersVec()
+{
+}
+
+ParametersVec::~ParametersVec()
+{
+}
+
+Parameter::Parameter()
+{
+}
+
+Parameter::~Parameter()
+{
+}
+

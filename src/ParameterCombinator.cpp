@@ -3,11 +3,12 @@
 #include <sstream>
 
 
-void ParameterCombinator::CartesianRecurse(std::vector<std::vector<int64_t>> &accum, std::vector<int64_t> stack,
-	std::vector<std::vector<int64_t>> sequences,int64_t index)
+
+void ParameterCombinator::CartesianRecurse(std::vector<std::vector<Parameter>>& accum, std::vector<Parameter> stack,
+	std::vector<std::vector<Parameter>> sequences,int64_t index)
 {
-	std::vector<int64_t> sequence = sequences[index];
-	for (int64_t i : sequence)
+	std::vector<Parameter> sequence = sequences[index];
+	for (auto i : sequence)
 	{
 		stack.push_back(i);
 		if (index == 0) {
@@ -20,10 +21,10 @@ void ParameterCombinator::CartesianRecurse(std::vector<std::vector<int64_t>> &ac
 	}
 }
 
-std::vector<std::vector<int64_t>> ParameterCombinator::CartesianProduct(std::vector<std::vector<int64_t>>& sequences)
+std::vector<std::vector<Parameter>> ParameterCombinator::CartesianProduct(std::vector<std::vector<Parameter>>& sequences)
 {
-	std::vector<std::vector<int64_t>> accum;
-	std::vector<int64_t> stack;
+	std::vector<std::vector<Parameter>> accum;
+	std::vector<Parameter> stack;
 	if (sequences.size() > 0) {
 		CartesianRecurse(accum, stack, sequences, sequences.size() - 1);
 	}
@@ -34,74 +35,31 @@ void ParameterCombinator::combine(parameterCombinations_t& paramCombs, dontCares
 {
 
 	// Convert parameterCombinations_t to a vector of vector of ints
-	std::vector<std::vector<int64_t>> sequences;
+	std::vector<std::vector<Parameter>> sequences;
+	std::vector<std::string> keyOrder;
 	for (auto& param : paramCombs) {
-		std::vector<int64_t> seq;
-		if (parameterTypeMap_["string"].count(param.first))
-		{
-			for (auto& val : param.second) {
-				std::string* strAddress = &std::get<std::string>(val);
-				seq.push_back(reinterpret_cast<int64_t&>(strAddress));
-			}
-		}
-		else
-		{
-			for (auto& val : param.second) {
-				seq.push_back(reinterpret_cast<int64_t&>(val));
-			}
+		std::vector<Parameter> seq;
+		keyOrder.push_back(param.first);
+		for (auto& val : param.second) {
+			seq.emplace_back(val);
 		}
 		sequences.push_back(seq);
 	}
 
-	std::vector<std::vector<int64_t>> res = CartesianProduct(sequences);
-
-	// Eliminate duplicates
-	std::set<std::vector<int64_t>> resSet;
-	for (auto& v : res) {
-		resSet.insert(v);
-	}
-
-	// Create parameter combinations with the combinatorial generated above
-	parameterCombinations_t newParamCombs;
-	for (auto& set : resSet) {
-		int i = 0;
-		for (auto& param : paramCombs)
-		{
-			// Reverse the set and insert
-			if (parameterTypeMap_["double"].count(param.first))
-			{
-				int64_t a = static_cast<int64_t>(set[set.size() - i - 1]);
-				double b = reinterpret_cast<double&>(a);
-				newParamCombs[param.first].push_back(b);
-			}
-			else if (parameterTypeMap_["string"].count(param.first))
-			{
-				int64_t a = static_cast<int64_t>(set[set.size() - i - 1]);
-				std::string* b = reinterpret_cast<std::string*>(a);
-				newParamCombs[param.first].push_back(*b);
-			}
-			else
-			{
-				auto a = static_cast<int>(set[set.size() - i - 1]);
-				newParamCombs[param.first].push_back(a);
-			}
-			i++;
-		}
-	}
+	std::vector<std::vector<Parameter>> combinations = CartesianProduct(sequences);
 
 	// Remove repeated combinations taking into account don't care parameters
-	ParameterInstanceSetCompare cmp(dontCares, parameterTypeMap_);
+	ParameterInstanceSetCompare cmp(dontCares);
 	*parameterInstanceSet_.get() = parameterInstanceSet_t(cmp);
 
-	size_t combSize = newParamCombs[newParamCombs.begin()->first].size();
-
-	for (size_t paramIdx = 0; paramIdx < combSize; paramIdx++)
+	for (auto& combination : combinations)
 	{
-		// Select the parameters to use for this iteration of the test
 		parameterInstanceMap_t paramInstance;
-		for (auto& [paramName, paramValues] : newParamCombs)
+		auto key = std::prev(keyOrder.end());
+		for (auto& param : combination)
 		{
-			paramInstance[paramName] = paramValues[paramIdx];
+			paramInstance[*key] = param;
+			key = (key == keyOrder.begin()) ? std::prev(keyOrder.end()) : std::prev(key);
 		}
 		// Remove paramter instance values that are irrelevant to the combination
 		for (auto& dontCare : dontCares)
@@ -111,7 +69,7 @@ void ParameterCombinator::combine(parameterCombinations_t& paramCombs, dontCares
 			{
 				continue;
 			}
-			std::string dontCareVal = std::get<std::string>(paramInstance[dontCareKey]);
+			Parameter dontCareVal = paramInstance[dontCareKey];
 			for (auto& paramName : dontCare.second[dontCareVal])
 			{
 				paramInstance.erase(paramName);
@@ -119,29 +77,22 @@ void ParameterCombinator::combine(parameterCombinations_t& paramCombs, dontCares
 		}
 		parameterInstanceSet_->insert(paramInstance);
 	}
-
 }
 
-ParameterCombinator::ParameterCombinator(parameterTypeMap_t& parameterTypeMap, printableParams_t& printableParameters)
-	: parameterTypeMap_(parameterTypeMap)
-	, printableParameters_(printableParameters)
+ParameterCombinator::ParameterCombinator()
 {
-	ParameterInstanceSetCompare cmp(dontCares_t{}, parameterTypeMap_t{});
-	parameterInstanceSet_ = std::make_unique<parameterInstanceSet_t>(cmp);
+	ParameterInstanceSetCompare cmp(dontCares_t{});
+	parameterInstanceSet_ = std::make_shared<parameterInstanceSet_t>(cmp);
 }
 
 ParameterCombinator::ParameterCombinator(const ParameterCombinator& other)
-	: parameterTypeMap_(other.parameterTypeMap_)
-	, printableParameters_(other.printableParameters_)
 {
-	parameterInstanceSet_ = std::make_unique<parameterInstanceSet_t>(*other.parameterInstanceSet_.get());
+	parameterInstanceSet_ = other.parameterInstanceSet_;
 }
 
 ParameterCombinator& ParameterCombinator::operator=(const ParameterCombinator& other)
 {
-	parameterTypeMap_ = other.parameterTypeMap_;
-	printableParameters_ = other.printableParameters_;
-	parameterInstanceSet_.reset(new parameterInstanceSet_t{ *other.parameterInstanceSet_.get()});
+	parameterInstanceSet_ = other.parameterInstanceSet_;
 	return *this;
 }
 
@@ -155,62 +106,3 @@ const parameterInstanceSet_t* ParameterCombinator::getParameterInstanceSet() con
 	return parameterInstanceSet_.get();
 }
 
-parameterTypeMap_t operator+(const parameterTypeMap_t& leftParamTypeMap, const parameterTypeMap_t& rightParamTypeMap)
-{
-	parameterTypeMap_t sum;
-	// Check that the parameterTypeMaps are the same for the shared keys
-	for (auto& parameterType : leftParamTypeMap)
-	{
-		if (rightParamTypeMap.count(parameterType.first)
-			&& rightParamTypeMap.at(parameterType.first) != parameterType.second)
-		{
-			std::throw_with_nested(std::runtime_error("Can't add parameterTypeMaps: Conflicting values."));
-		}
-	}
-	for (auto& parameterTypeMap : { leftParamTypeMap, rightParamTypeMap })
-	{
-		for (auto& parameterType : parameterTypeMap)
-		{
-			sum.insert(parameterType);
-		}
-	}
-
-	return sum;
-}
-
-printableParams_t operator+(const printableParams_t& leftPrintableParam, const printableParams_t& rightPrintableParam)
-{
-	printableParams_t sum;
-	for (auto& printableParameters : { leftPrintableParam, rightPrintableParam })
-	{
-		for (auto& printableParameter : printableParameters)
-		{
-			sum.insert(printableParameter);
-		}
-	}
-	return sum;
-}
-
-
-ParameterCombinator ParameterCombinator::addCombinators(const ParameterCombinator& leftParamCombinator,
-				const ParameterCombinator& rightParamCombinator, const dontCares_t& dontCares)
-{
-	const parameterInstanceSet_t* leftParamSet  = leftParamCombinator.getParameterInstanceSet();
-	const parameterInstanceSet_t* rightParamSet = rightParamCombinator.getParameterInstanceSet();
-	parameterTypeMap_t sumParameterTypeMap = leftParamCombinator.parameterTypeMap_ + rightParamCombinator.parameterTypeMap_;
-	printableParams_t  printableParams = leftParamCombinator.printableParameters_ + rightParamCombinator.printableParameters_;
-
-	ParameterCombinator resultCombinator(sumParameterTypeMap, printableParams);
-	ParameterInstanceSetCompare cmp(dontCares, sumParameterTypeMap);
-	parameterInstanceSet_t* sum = new parameterInstanceSet_t(cmp);
-
-	for (auto& paramSet : { *leftParamSet, *rightParamSet })
-	{
-		for (auto& paramInstance : paramSet)
-		{
-			sum->insert(paramInstance);
-		}
-	}
-	resultCombinator.parameterInstanceSet_.reset(sum);
-	return resultCombinator;
-}
