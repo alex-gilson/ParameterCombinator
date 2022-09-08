@@ -89,4 +89,12 @@ After running the combination engine, we should end up with the following result
 		{{"vehicle", "motorbike"}, {"horsepower", 100}, {"motor", "electric"}, {"wind-protector", 0}},
 		{{"vehicle", "motorbike"}, {"horsepower", 130}, {"motor", "electric"}, {"wind-protector", 0}},
 		
-		
+To make use of every instance of a parameter combination is as easy as using an iterator.
+
+	for (auto& paramInstance : *paramCombinator.getParameterInstanceSet())
+	{
+		int horsepower = std::get<int>(paramInstance["horsepower"]);
+		std::string vehicle =  std::get<std::string>(paramInstance.at("vehicle"));
+		runTest(horsepower, vehicle);
+	}
+
