@@ -12,8 +12,6 @@ public:
 	const parameterInstanceSet_t* getParameterInstanceSet() const;
 	void combine(parameterCombinations_t& paramCombs, dontCares_t& dontCares);
 	void clearCombinations();
-	static ParameterCombinator addCombinators(const ParameterCombinator& leftParamCombinator,
-			const ParameterCombinator& rightParamCombinator, const dontCares_t& dontCare);
 private:
 	std::vector<std::vector<Parameter>> CartesianProduct(std::vector<std::vector<Parameter>>& sequences);
 	void CartesianRecurse(std::vector<std::vector<Parameter>>& accum, std::vector<Parameter> stack,
