@@ -1,33 +1,33 @@
-# ParameterCombinator
+# C++ ParameterCombinator
 
-ParameterCombinator is a library for multiple parameter validation. It allows the tester to create all possible combinations for a set of parameter values. The user can also determine the relationship of parameters in case they have no casual effect between each other.
+ParameterCombinator is a library for parameter validation. It allows the tester to create all possible combinations for a set of parameter values. The user can also determine the relationship of parameters in case they have no casual effect between each other to avoid reduntant evaluations of an algorithm.
 
 As a first example, let's say we wish to make all possible combinations of vehicles with the horsepower and availability of airbag properties.
 
-	// List of parameters to test
     paramCombs["vehicle"]    = { "car", "motorbike" };
 	paramCombs["horsepower"] = { 100, 120, 130 };
 	paramCombs["airbag"]     = { 0, 1 };
 
 We construct the class ParameterCombinator and tell it to combine our properties.
 
-	ParameterCombinator paramCombinator(parameterTypeMap, printableParams);
+	dontCares_t dontCares;
+	ParameterCombinator paramCombinator;
 	paramCombinator.combine(paramCombs, dontCares);
 	
 The resulting combination will be this:
 
-		{{"vehicle", "car"},       {"horsepower", 100}, {"airbag", 0}},
-		{{"vehicle", "car"},       {"horsepower", 100}, {"airbag", 1}},
-		{{"vehicle", "car"},       {"horsepower", 120}, {"airbag", 0}},
-		{{"vehicle", "car"},       {"horsepower", 120}, {"airbag", 1}},
-		{{"vehicle", "car"},       {"horsepower", 130}, {"airbag", 0}},
-		{{"vehicle", "car"},       {"horsepower", 130}, {"airbag", 1}},
-		{{"vehicle", "motorbike"}, {"horsepower", 100}, {"airbag", 0}},
-		{{"vehicle", "motorbike"}, {"horsepower", 100}, {"airbag", 1}},
-		{{"vehicle", "motorbike"}, {"horsepower", 120}, {"airbag", 0}},
-		{{"vehicle", "motorbike"}, {"horsepower", 120}, {"airbag", 1}},
-		{{"vehicle", "motorbike"}, {"horsepower", 130}, {"airbag", 0}},
-		{{"vehicle", "motorbike"}, {"horsepower", 130}, {"airbag", 1}}
+	{{"vehicle", "car"},       {"horsepower", 100}, {"airbag", 0}},
+	{{"vehicle", "car"},       {"horsepower", 100}, {"airbag", 1}},
+	{{"vehicle", "car"},       {"horsepower", 120}, {"airbag", 0}},
+	{{"vehicle", "car"},       {"horsepower", 120}, {"airbag", 1}},
+	{{"vehicle", "car"},       {"horsepower", 130}, {"airbag", 0}},
+	{{"vehicle", "car"},       {"horsepower", 130}, {"airbag", 1}},
+	{{"vehicle", "motorbike"}, {"horsepower", 100}, {"airbag", 0}},
+	{{"vehicle", "motorbike"}, {"horsepower", 100}, {"airbag", 1}},
+	{{"vehicle", "motorbike"}, {"horsepower", 120}, {"airbag", 0}},
+	{{"vehicle", "motorbike"}, {"horsepower", 120}, {"airbag", 1}},
+	{{"vehicle", "motorbike"}, {"horsepower", 130}, {"airbag", 0}},
+	{{"vehicle", "motorbike"}, {"horsepower", 130}, {"airbag", 1}}
 		
 Now, let's say we want to introduce more complex relationships between variables. Let's take the following case:
 
@@ -66,35 +66,42 @@ Cars don't care about whether there is a wind protector because that's a motorbi
 	
 After running the combination engine, we should end up with the following result:
 
-		{{"vehicle", "car"},       {"horsepower", 100}, {"motor", "gasoline"}, {"fuel-consumption", 2.3}, {"AC", 1}},
-		{{"vehicle", "car"},       {"horsepower", 130}, {"motor", "gasoline"}, {"fuel-consumption", 2.3}, {"AC", 1}},
-		{{"vehicle", "motorbike"}, {"horsepower", 100}, {"motor", "gasoline"}, {"fuel-consumption", 2.3}, {"wind-protector", 0}},
-		{{"vehicle", "motorbike"}, {"horsepower", 130}, {"motor", "gasoline"}, {"fuel-consumption", 2.3}, {"wind-protector", 0}},
-		{{"vehicle", "car"},       {"horsepower", 100}, {"motor", "gasoline"}, {"fuel-consumption", 4.1}, {"AC", 1}},
-		{{"vehicle", "car"},       {"horsepower", 130}, {"motor", "gasoline"}, {"fuel-consumption", 4.1}, {"AC", 1}},
-		{{"vehicle", "motorbike"}, {"horsepower", 100}, {"motor", "gasoline"}, {"fuel-consumption", 4.1}, {"wind-protector", 0}},
-		{{"vehicle", "motorbike"}, {"horsepower", 130}, {"motor", "gasoline"}, {"fuel-consumption", 4.1}, {"wind-protector", 0}},
+	{{"vehicle", "car"},       {"horsepower", 100}, {"motor", "gasoline"}, {"fuel-consumption", 2.3}, {"AC", 1}},
+	{{"vehicle", "car"},       {"horsepower", 130}, {"motor", "gasoline"}, {"fuel-consumption", 2.3}, {"AC", 1}},
+	{{"vehicle", "motorbike"}, {"horsepower", 100}, {"motor", "gasoline"}, {"fuel-consumption", 2.3}, {"wind-protector", 0}},
+	{{"vehicle", "motorbike"}, {"horsepower", 130}, {"motor", "gasoline"}, {"fuel-consumption", 2.3}, {"wind-protector", 0}},
+	{{"vehicle", "car"},       {"horsepower", 100}, {"motor", "gasoline"}, {"fuel-consumption", 4.1}, {"AC", 1}},
+	{{"vehicle", "car"},       {"horsepower", 130}, {"motor", "gasoline"}, {"fuel-consumption", 4.1}, {"AC", 1}},
+	{{"vehicle", "motorbike"}, {"horsepower", 100}, {"motor", "gasoline"}, {"fuel-consumption", 4.1}, {"wind-protector", 0}},
+	{{"vehicle", "motorbike"}, {"horsepower", 130}, {"motor", "gasoline"}, {"fuel-consumption", 4.1}, {"wind-protector", 0}},
 
-		{{"vehicle", "car"},       {"horsepower", 100}, {"motor", "diesel"},   {"fuel-consumption", 2.3}, {"AC", 1}},
-		{{"vehicle", "car"},       {"horsepower", 130}, {"motor", "diesel"},   {"fuel-consumption", 2.3}, {"AC", 1}},
-		{{"vehicle", "motorbike"}, {"horsepower", 100}, {"motor", "diesel"},   {"fuel-consumption", 2.3}, {"wind-protector", 0}},
-		{{"vehicle", "motorbike"}, {"horsepower", 130}, {"motor", "diesel"},   {"fuel-consumption", 2.3}, {"wind-protector", 0}},
-		{{"vehicle", "car"},       {"horsepower", 100}, {"motor", "diesel"},   {"fuel-consumption", 4.1}, {"AC", 1}},
-		{{"vehicle", "car"},       {"horsepower", 130}, {"motor", "diesel"},   {"fuel-consumption", 4.1}, {"AC", 1}},
-		{{"vehicle", "motorbike"}, {"horsepower", 100}, {"motor", "diesel"},   {"fuel-consumption", 4.1}, {"wind-protector", 0}},
-		{{"vehicle", "motorbike"}, {"horsepower", 130}, {"motor", "diesel"},   {"fuel-consumption", 4.1}, {"wind-protector", 0}},
+	{{"vehicle", "car"},       {"horsepower", 100}, {"motor", "diesel"},   {"fuel-consumption", 2.3}, {"AC", 1}},
+	{{"vehicle", "car"},       {"horsepower", 130}, {"motor", "diesel"},   {"fuel-consumption", 2.3}, {"AC", 1}},
+	{{"vehicle", "motorbike"}, {"horsepower", 100}, {"motor", "diesel"},   {"fuel-consumption", 2.3}, {"wind-protector", 0}},
+	{{"vehicle", "motorbike"}, {"horsepower", 130}, {"motor", "diesel"},   {"fuel-consumption", 2.3}, {"wind-protector", 0}},
+	{{"vehicle", "car"},       {"horsepower", 100}, {"motor", "diesel"},   {"fuel-consumption", 4.1}, {"AC", 1}},
+	{{"vehicle", "car"},       {"horsepower", 130}, {"motor", "diesel"},   {"fuel-consumption", 4.1}, {"AC", 1}},
+	{{"vehicle", "motorbike"}, {"horsepower", 100}, {"motor", "diesel"},   {"fuel-consumption", 4.1}, {"wind-protector", 0}},
+	{{"vehicle", "motorbike"}, {"horsepower", 130}, {"motor", "diesel"},   {"fuel-consumption", 4.1}, {"wind-protector", 0}},
 
-		{{"vehicle", "car"},       {"horsepower", 100}, {"motor", "electric"}, {"AC", 1}},
-		{{"vehicle", "car"},       {"horsepower", 130}, {"motor", "electric"}, {"AC", 1}},
-		{{"vehicle", "motorbike"}, {"horsepower", 100}, {"motor", "electric"}, {"wind-protector", 0}},
-		{{"vehicle", "motorbike"}, {"horsepower", 130}, {"motor", "electric"}, {"wind-protector", 0}},
+	{{"vehicle", "car"},       {"horsepower", 100}, {"motor", "electric"}, {"AC", 1}},
+	{{"vehicle", "car"},       {"horsepower", 130}, {"motor", "electric"}, {"AC", 1}},
+	{{"vehicle", "motorbike"}, {"horsepower", 100}, {"motor", "electric"}, {"wind-protector", 0}},
+	{{"vehicle", "motorbike"}, {"horsepower", 130}, {"motor", "electric"}, {"wind-protector", 0}},
+
+"Dontcares" can contain relationships between parameters of any type.
+
+	dontCares["horsepower"] = 
+	{
+		{130, {"wind-protector"}}
+	};
 		
 To make use of every instance of a parameter combination is as easy as using an iterator.
 
 	for (auto& paramInstance : *paramCombinator.getParameterInstanceSet())
 	{
-		int horsepower = std::get<int>(paramInstance["horsepower"]);
-		std::string vehicle =  std::get<std::string>(paramInstance.at("vehicle"));
+		auto& horsepower = paramInstance.at("horsepower");
+		auto& vehicle = paramInstance.at("vehicle");
 		runTest(horsepower, vehicle);
 	}
 
