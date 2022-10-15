@@ -1,6 +1,9 @@
 #include "Parameters.h"
 #include <iostream>
 
+namespace parameterCombinator
+{
+
 // ParameterBase operators
 
 bool operator==(const ParameterBase& lhs, const ParameterBase& rhs) {
@@ -75,3 +78,4 @@ Parameter::~Parameter()
 {
 }
 
+} // Namespace parameterCombinator

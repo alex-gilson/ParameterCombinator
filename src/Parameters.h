@@ -12,6 +12,8 @@
 #include <type_traits>
 #include <optional>
 
+namespace parameterCombinator
+{
 
 namespace CHECK
 {
@@ -116,6 +118,8 @@ protected:
 
 class Parameter
 {
+private:
+	std::shared_ptr<const ParameterBase> param_;
 public:
 	Parameter();
 	~Parameter();
@@ -150,8 +154,6 @@ public:
 	{
 		return param_.get();
 	}
-private:
-	std::shared_ptr<const ParameterBase> param_;
 };
 
 bool operator==(const Parameter& lhs, const Parameter& rhs);
@@ -191,6 +193,10 @@ public:
 	{
 		return parametersVec_.end();
 	}
+	Parameter& operator[](int idx)
+	{
+		return parametersVec_[idx];
+	}
 private:
 	std::vector<Parameter> parametersVec_;
 };
@@ -202,11 +208,22 @@ using stringSet_t = std::set<std::string>;
 using stringSetMap_t = std::unordered_map<std::string, stringSet_t >;
 using dontCares_t = std::unordered_map<std::string, std::unordered_map<Parameter, std::set<std::string> , ParameterHasher> >;
 
-//std::optional<Parameter> getVal(parameterInstanceMap_t& paramInstance, std::string& key)
-//{
-//	auto val = paramInstance.find(key);
-//	return val == paramInstance.end() ? std::optional<Parameter>{*val} : std::nullopt;
-//}
+template<typename T>
+auto getVal(const parameterInstanceMap_t& paramInstance, const std::string& key)
+{
+	if (!paramInstance.count(key))
+	{
+		throw std::invalid_argument("Parameter does not exist for this parameterInstance.");
+	}
+	Parameter param = paramInstance.at(key);
+	const ParameterBase* paramBase = &(*param);
+	const ParameterDerived<T>* paramDerived = dynamic_cast<const ParameterDerived<T>*>(paramBase);
+	if (!paramDerived)
+	{
+		throw std::invalid_argument("Given template type does not match value type");
+	}
+	return paramDerived->val_;
+}
 
 struct ParameterInstanceSetCompare
 {
@@ -253,3 +270,4 @@ struct ParameterInstanceSetCompare
 
 using parameterInstanceSet_t = std::set<parameterInstanceMap_t, ParameterInstanceSetCompare>;
 
+} // Namespace parameterCombinator

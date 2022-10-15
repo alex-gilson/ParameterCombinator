@@ -2,6 +2,8 @@
 #include <iostream>
 #include <cassert>
 
+using namespace parameterCombinator;
+
 template<typename T>
 T getVal(Parameter param)
 {
@@ -319,9 +321,17 @@ void testParameter()
 		Parameter a = 'a';
 		Parameter b = 2;
 		assert(a != b);
-		assert(a < b);
-		assert(a <= b);
-		assert(!(a >= b));
+		assert(a < b || a > b);
+		if (a < b)
+		{
+			assert(a <= b);
+			assert(!(a >= b));
+		}
+		else
+		{
+			assert(a >= b);
+			assert(!(a <= b));
+		}
 	}
 	// Test == and != operators for Parameter class
 	{
@@ -359,40 +369,42 @@ void testParameter()
 	}
 }
 
-//bool testIteration()
-//{
-//	parameterCombinations_t paramCombs;
-//	paramCombs["vehicle"]    = { "car", "motorbike" };
-//	paramCombs["horsepower"] = { 100, 120, 130 };
-//	paramCombs["AC"]         = { 0, 1 };
-//
-//	// List of parameters to be ignored in the combination
-//	dontCares_t dontCares =
-//	{
-//		{"vehicle",
-//			{
-//				{"motorbike",
-//					{"AC"}
-//				}
-//			}
-//		}
-//	};
-//
-//	ParameterCombinator paramCombinator;
-//	paramCombinator.combine(paramCombs, dontCares);
-//
-//	auto paramInstanceSet = paramCombinator.getParameterInstanceSet();
-//
-//	for (auto& paramInstance : *paramInstanceSet)
-//	{
-//		auto& vehicle = paramInstance.at("vehicle");
-//		auto& horsepower = paramInstance.at("horsepower");
-//		auto ac = getVal(paramInstance, std::string("AC"));
-//		//auto ac = paramInstance.count("AC") ? paramInstance["AC"] : nullptr;
-//	}
-//
-//	return false;
-//}
+bool testIteration()
+{
+	parameterCombinations_t paramCombs;
+	paramCombs["vehicle"]    = { "car", "motorbike" };
+	paramCombs["horsepower"] = { 100, 120, 130 };
+	paramCombs["AC"]         = { false, true };
+
+	// List of parameters to be ignored in the combination
+	dontCares_t dontCares =
+	{
+		{"vehicle",
+			{
+				{"motorbike",
+					{"AC"}
+				}
+			}
+		}
+	};
+
+	ParameterCombinator paramCombinator;
+	paramCombinator.combine(paramCombs, dontCares);
+
+	auto paramInstanceSet = paramCombinator.getParameterInstanceSet();
+
+	for (auto& paramInstance : *paramInstanceSet)
+	{
+		auto vehicle    = getVal<const char*>(paramInstance, "vehicle");
+		auto horsepower = getVal<int>(paramInstance, "horsepower");
+		// Motorbikes don't have AC
+		if (strcmp(vehicle, "motorbike"))
+		{
+			auto AC = getVal<bool>(paramInstance, "AC");
+		}
+	}
+	return false;
+}
 
 int main()
 {
@@ -402,7 +414,7 @@ int main()
 	assert(!testCombinationWithDontCare(), "failed");
 	assert(!testCombinationWithMultipleDontCares(), "failed");
 	assert(!testSimpleRecombination(), "failed");
-	//testIteration();
+	testIteration();
 
 	return false;
 }
