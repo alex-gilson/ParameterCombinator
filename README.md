@@ -98,10 +98,16 @@ After running the combination engine, we should end up with the following result
 		
 To make use of every instance of a parameter combination is as easy as using an iterator.
 
-	for (auto& paramInstance : *paramCombinator.getParameterInstanceSet())
-	{
-		auto& horsepower = paramInstance.at("horsepower");
-		auto& vehicle = paramInstance.at("vehicle");
-		runTest(horsepower, vehicle);
-	}
+	auto paramInstanceSet = paramCombinator.getParameterInstanceSet();
 
+	for (auto& paramInstance : *paramInstanceSet)
+	{
+		auto vehicle    = getVal<const char*>(paramInstance, "vehicle");
+		auto horsepower = getVal<int>(paramInstance, "horsepower");
+		// Motorbikes don't have AC
+		if (strcmp(vehicle, "motorbike"))
+		{
+			auto AC = getVal<bool>(paramInstance, "AC");
+		}
+		runTest(vehicle, horsepower);
+	}
