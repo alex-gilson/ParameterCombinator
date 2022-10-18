@@ -255,7 +255,8 @@ struct ParameterInstanceSetCompare
 					break;
 				}
 			}
-			if (skip || (b.count(param.first) && (param.second == b.at(param.first))))
+			if (skip || (b.count(param.first) && (param.second == b.at(param.first)))
+				|| (!b.count(param.first) && a.count(param.first))) // Compare paramInstances of different sizes (happens at addCombinations)
 			{
 				continue;
 			}

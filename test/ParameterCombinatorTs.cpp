@@ -4,12 +4,6 @@
 
 using namespace parameterCombinator;
 
-template<typename T>
-T getVal(Parameter param)
-{
-	return static_cast<const ParameterDerived<T>>(param.get());
-}
-
 void printDifferences(const std::vector<parameterInstanceMap_t>& expectedCombinations, const parameterInstanceSet_t* paramSet)
 {
 	std::cout << "Output:" << std::endl;
@@ -406,6 +400,118 @@ bool testIteration()
 	return false;
 }
 
+bool testAddition()
+{
+	bool failed = false;
+	// List of parameters to test
+	parameterCombinations_t paramCombs;
+	paramCombs["vehicle"]        = { "car", "motorbike" };
+	paramCombs["horsepower"]     = { 100, 130 };
+	paramCombs["AC"]             = { 0, 1 };
+
+	// List of parameters to be ignored in the combination
+	dontCares_t dontCares =
+	{
+		{"vehicle",
+			{
+				{"motorbike",
+					{"AC"}
+				}
+			}
+		}
+	};
+
+	ParameterCombinator paramCombinator1;
+	paramCombinator1.combine(paramCombs, dontCares);
+
+	std::vector<parameterInstanceMap_t> expectedCombinations
+	{
+		{{"vehicle", "car"},       {"horsepower", 100}, {"AC", 0}},
+		{{"vehicle", "car"},       {"horsepower", 130}, {"AC", 0}},
+		{{"vehicle", "car"},       {"horsepower", 100}, {"AC", 1}},
+		{{"vehicle", "car"},       {"horsepower", 130}, {"AC", 1}},
+		{{"vehicle", "motorbike"}, {"horsepower", 100}},
+		{{"vehicle", "motorbike"}, {"horsepower", 130}},
+	};
+
+	failed |= checkEquality(expectedCombinations, paramCombinator1);
+
+	parameterCombinations_t paramCombs2;
+	paramCombs2["vehicle"]        = { "car", "motorbike" };
+	paramCombs2["horsepower"]     = { 120, 140 };
+	paramCombs2["AC"]             = { 0, 1 };
+
+	ParameterCombinator paramCombinator2;
+	paramCombinator2.combine(paramCombs2, dontCares);
+
+	std::vector<parameterInstanceMap_t> expectedCombinations2
+	{
+		{{"vehicle", "car"},       {"horsepower", 120}, {"AC", 0}},
+		{{"vehicle", "car"},       {"horsepower", 140}, {"AC", 0}},
+		{{"vehicle", "car"},       {"horsepower", 120}, {"AC", 1}},
+		{{"vehicle", "car"},       {"horsepower", 140}, {"AC", 1}},
+		{{"vehicle", "motorbike"}, {"horsepower", 120}},
+		{{"vehicle", "motorbike"}, {"horsepower", 140}},
+	};
+
+	failed |= checkEquality(expectedCombinations2, paramCombinator2);
+
+	ParameterCombinator paramCombinator3;
+	paramCombinator3.addCombinations(paramCombinator1, paramCombinator2, dontCares);
+
+	std::vector<parameterInstanceMap_t> expectedCombinations3
+	{
+		{{"vehicle", "car"},       {"horsepower", 100}, {"AC", 0}},
+		{{"vehicle", "car"},       {"horsepower", 130}, {"AC", 0}},
+		{{"vehicle", "car"},       {"horsepower", 100}, {"AC", 1}},
+		{{"vehicle", "car"},       {"horsepower", 130}, {"AC", 1}},
+		{{"vehicle", "motorbike"}, {"horsepower", 100}},
+		{{"vehicle", "motorbike"}, {"horsepower", 130}},
+
+		{{"vehicle", "car"},       {"horsepower", 120}, {"AC", 0}},
+		{{"vehicle", "car"},       {"horsepower", 140}, {"AC", 0}},
+		{{"vehicle", "car"},       {"horsepower", 120}, {"AC", 1}},
+		{{"vehicle", "car"},       {"horsepower", 140}, {"AC", 1}},
+		{{"vehicle", "motorbike"}, {"horsepower", 120}},
+		{{"vehicle", "motorbike"}, {"horsepower", 140}},
+	};
+
+	failed |= checkEquality(expectedCombinations3, paramCombinator3);
+
+	paramCombinator3.addCombinations(paramCombinator1, paramCombinator2, dontCares_t{});
+	failed |= checkEquality(expectedCombinations3, paramCombinator3);
+
+	dontCares_t dontCares2 =
+	{
+		{"vehicle",
+			{
+				{"motorbike",
+					{"horsepower", "AC"}
+				}
+			}
+		}
+	};
+
+	std::vector<parameterInstanceMap_t> expectedCombinations4
+	{
+		{{"vehicle", "car"},       {"horsepower", 100}, {"AC", 0}},
+		{{"vehicle", "car"},       {"horsepower", 130}, {"AC", 0}},
+		{{"vehicle", "car"},       {"horsepower", 100}, {"AC", 1}},
+		{{"vehicle", "car"},       {"horsepower", 130}, {"AC", 1}},
+		{{"vehicle", "car"},       {"horsepower", 120}, {"AC", 0}},
+		{{"vehicle", "car"},       {"horsepower", 140}, {"AC", 0}},
+		{{"vehicle", "car"},       {"horsepower", 120}, {"AC", 1}},
+		{{"vehicle", "car"},       {"horsepower", 140}, {"AC", 1}},
+		{{"vehicle", "motorbike"}},
+	};
+
+	//paramCombinator3.addCombinations(paramCombinator1, paramCombinator2, dontCares2);
+	//failed |= checkEquality(expectedCombinations4, paramCombinator3);
+
+	return failed;
+
+}
+
 int main()
 {
 	testParameter();
@@ -414,6 +520,7 @@ int main()
 	assert(!testCombinationWithDontCare(), "failed");
 	assert(!testCombinationWithMultipleDontCares(), "failed");
 	assert(!testSimpleRecombination(), "failed");
+	assert(!testAddition(), "failed");
 	testIteration();
 
 	return false;
