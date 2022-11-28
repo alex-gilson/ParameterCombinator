@@ -512,6 +512,22 @@ bool testAddition()
 
 }
 
+bool testGenerateCombinationName()
+{
+	parameterInstanceMap_t paramInstance;
+	ParameterCombinator paramComb;
+	paramInstance["vehicle"] = "car";
+	paramInstance["airbag"] = true;
+	paramInstance["horsepower"] = 120.2342;
+	paramInstance["motor"] = std::string{ "diesel" };
+
+	std::string combinationName = paramComb.generateCombinationName(paramInstance);
+
+	bool failed = !(combinationName == "airbag_1_horsepower_1.202342e+02_motor_diesel_vehicle_car");
+
+	return failed;
+}
+
 int main()
 {
 	testParameter();
@@ -521,6 +537,7 @@ int main()
 	assert(!testCombinationWithMultipleDontCares(), "failed");
 	assert(!testSimpleRecombination(), "failed");
 	assert(!testAddition(), "failed");
+	assert(!testGenerateCombinationName(), "failed");
 	testIteration();
 
 	return false;

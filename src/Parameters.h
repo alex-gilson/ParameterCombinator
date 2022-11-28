@@ -11,6 +11,7 @@
 #include <functional>
 #include <type_traits>
 #include <optional>
+#include <sstream>
 
 namespace parameterCombinator
 {
@@ -86,9 +87,15 @@ public:
 		{
 			return val_;
 		}
-		else if constexpr (std::is_integral_v<T> || std::is_floating_point<T>::value)
+		else if constexpr (std::is_integral_v<T>)
 		{
 			return std::to_string(val_);
+		}
+		else if constexpr (std::is_floating_point<T>::value)
+		{
+			std::stringstream ss;
+			ss << std::scientific << val_;
+			return ss.str();
 		}
 		else
 		{

@@ -124,6 +124,20 @@ namespace parameterCombinator
 			}
 		}
 	}
+	std::string ParameterCombinator::generateCombinationName(const parameterInstanceMap_t& paramInstance) const
+	{
+		std::string combinationName;
+		for (auto [paramName, paramValue] : paramInstance)
+		{
+			combinationName += paramName + "_" + paramValue->toString() + "_";
+		}
+
+		// Remove trailing "_"
+		size_t lastIndex = combinationName.find_last_of("_");
+		combinationName = combinationName.substr(0, lastIndex);
+
+		return combinationName;
+	}
 
 } // Namespace parameterCombinator
 
