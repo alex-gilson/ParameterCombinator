@@ -192,6 +192,11 @@ public:
 			parametersVec_.emplace_back(val);
 		}
 	}
+	template<typename T>
+	void push_back(T val)
+	{
+		parametersVec_.push_back(val);
+	}
 	auto begin()
 	{
 		return parametersVec_.begin();
@@ -216,13 +221,8 @@ using stringSetMap_t = std::unordered_map<std::string, stringSet_t >;
 using dontCares_t = std::unordered_map<std::string, std::unordered_map<Parameter, std::set<std::string> , ParameterHasher> >;
 
 template<typename T>
-auto getVal(const parameterInstanceMap_t& paramInstance, const std::string& key)
+auto getVal(const Parameter& param)
 {
-	if (!paramInstance.count(key))
-	{
-		throw std::invalid_argument("Parameter does not exist for this parameterInstance.");
-	}
-	Parameter param = paramInstance.at(key);
 	const ParameterBase* paramBase = &(*param);
 	const ParameterDerived<T>* paramDerived = dynamic_cast<const ParameterDerived<T>*>(paramBase);
 	if (!paramDerived)
@@ -230,6 +230,16 @@ auto getVal(const parameterInstanceMap_t& paramInstance, const std::string& key)
 		throw std::invalid_argument("Given template type does not match value type");
 	}
 	return paramDerived->val_;
+}
+
+template<typename T>
+auto getVal(const parameterInstanceMap_t& paramInstance, const std::string& key)
+{
+	if (!paramInstance.count(key))
+	{
+		throw std::invalid_argument("Parameter does not exist for this parameterInstance.");
+	}
+	return getVal<T>(paramInstance.at(key));
 }
 
 struct ParameterInstanceSetCompare
