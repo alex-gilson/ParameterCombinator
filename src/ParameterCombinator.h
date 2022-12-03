@@ -22,7 +22,6 @@ namespace parameterCombinator
 			std::vector<std::vector<Parameter>> sequences, int64_t index);
 
 		std::shared_ptr<parameterInstanceSet_t> parameterInstanceSet_;
-		std::string conbinationName_;
 
 	};
 

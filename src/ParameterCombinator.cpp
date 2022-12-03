@@ -109,20 +109,20 @@ namespace parameterCombinator
 
 	void ParameterCombinator::addCombinations(ParameterCombinator& paramCombinator1, ParameterCombinator& paramCombinator2, dontCares_t& dontCares)
 	{
-		clearCombinations();
 		const parameterInstanceSet_t* paramSet1 = paramCombinator1.getParameterInstanceSet();
 		const parameterInstanceSet_t* paramSet2 = paramCombinator2.getParameterInstanceSet();
 
 		ParameterInstanceSetCompare cmp(dontCares);
-		*parameterInstanceSet_.get() = parameterInstanceSet_t(cmp);
+		parameterInstanceSet_t sumParamSet(cmp);
 
 		for (auto& paramSet : { *paramSet1, *paramSet2 })
 		{
 			for (auto& paramInstance : paramSet)
 			{
-				parameterInstanceSet_->insert(paramInstance);
+				sumParamSet.insert(paramInstance);
 			}
 		}
+		*parameterInstanceSet_ = std::move(sumParamSet);
 	}
 	std::string ParameterCombinator::generateCombinationName(const parameterInstanceMap_t& paramInstance) const
 	{
