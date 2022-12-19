@@ -1,6 +1,7 @@
 
 #include "ParameterCombinator.h"
 #include <sstream>
+#include <algorithm>
 
 namespace parameterCombinator
 {
@@ -135,6 +136,8 @@ namespace parameterCombinator
 		// Remove trailing "_"
 		size_t lastIndex = combinationName.find_last_of("_");
 		combinationName = combinationName.substr(0, lastIndex);
+
+		std::replace(combinationName.begin(), combinationName.end(), '.', '_');
 
 		return combinationName;
 	}
