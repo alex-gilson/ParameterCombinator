@@ -15,7 +15,7 @@ namespace parameterCombinator
 		void combine(parameterCombinations_t& paramCombs, dontCares_t& dontCares);
 		void clearCombinations();
 		void addCombinations(ParameterCombinator& paramCombinator1, ParameterCombinator& paramCombinator2, dontCares_t& dontCares);
-		std::string generateCombinationName(const parameterInstanceMap_t& paramInstance) const;
+		static std::string generateCombinationName(const parameterInstanceMap_t& paramInstance);
 	private:
 		std::vector<std::vector<Parameter>> CartesianProduct(std::vector<std::vector<Parameter>>& sequences);
 		void CartesianRecurse(std::vector<std::vector<Parameter>>& accum, std::vector<Parameter> stack,

@@ -125,7 +125,7 @@ namespace parameterCombinator
 		}
 		*parameterInstanceSet_ = std::move(sumParamSet);
 	}
-	std::string ParameterCombinator::generateCombinationName(const parameterInstanceMap_t& paramInstance) const
+	std::string ParameterCombinator::generateCombinationName(const parameterInstanceMap_t& paramInstance)
 	{
 		std::string combinationName;
 		for (auto [paramName, paramValue] : paramInstance)
