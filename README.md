@@ -1,4 +1,4 @@
-# C++ ParameterCombinator
+![ParameterCombinator logo](https://github.com/alex-gilson/ParameterCombinator/blob/main/parametercombinator_logo.png)
 
 ParameterCombinator is a library for parameter validation. It allows the tester to create all possible combinations for a set of parameter values. The user can also determine the relationship of parameters in case they have no casual effect between each other to avoid reduntant evaluations of an algorithm.
 
