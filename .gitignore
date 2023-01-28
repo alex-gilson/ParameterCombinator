@@ -2,3 +2,4 @@
 bin/
 CMakeSettings.json
 .vs/
+out/
