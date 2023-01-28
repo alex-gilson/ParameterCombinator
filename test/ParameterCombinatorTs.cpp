@@ -523,7 +523,7 @@ bool testGenerateCombinationName()
 
 	std::string combinationName = paramComb.generateCombinationName(paramInstance);
 
-	bool failed = !(combinationName == "airbag_1_horsepower_1.202342e+02_motor_diesel_vehicle_car");
+	bool failed = !(combinationName == "airbag_1_horsepower_1_202342e+02_motor_diesel_vehicle_car");
 
 	return failed;
 }
