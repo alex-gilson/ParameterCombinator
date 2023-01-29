@@ -1,10 +1,47 @@
 ![ParameterCombinator logo](https://github.com/alex-gilson/ParameterCombinator/blob/main/parametercombinator_logo.png)
 
+# Description
+
 ParameterCombinator is a library for parameter validation. It allows the tester to create all possible combinations for a set of parameter values. The user can also determine the relationship of parameters in case they have no casual effect between each other to avoid reduntant evaluations of an algorithm.
+
+# Installation
+
+First, set up your project for CMake. Then, in your project directory run:
+
+```bash
+git submodule add https://github.com/alex-gilson/ParameterCombinator.git
+```
+
+Insert the following line to you CMakeLists.txt:
+
+```cmake
+add_subdirectory(ParameterCombinator)
+```
+
+and
+
+```cmake
+target_link_libraries(<your-project-name> PUBLIC ParameterCombinator)
+```
+
+# Usage
+
+To make use of the ParameterCombinator library add the header file to your code:
+
+```C++
+#include "ParameterCombinator.h"
+```
+
+Additionaly, you can also make use the namespace directly.
+
+```C++
+using namespace parameterCombinator;
+```
 
 As a first example, let's say we wish to make all possible combinations of vehicles with the horsepower and availability of airbag properties.
 
 ```C++
+parameterCombinations_t paramCombs;
 paramCombs["vehicle"]    = { "car", "motorbike" };
 paramCombs["horsepower"] = { 100, 120, 130 };
 paramCombs["airbag"]     = { 0, 1 };
