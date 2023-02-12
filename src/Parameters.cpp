@@ -7,8 +7,9 @@ namespace parameterCombinator
 // ParameterBase operators
 
 bool operator==(const ParameterBase& lhs, const ParameterBase& rhs) {
-	return typeid(lhs) == typeid(rhs)
-		&& lhs.isEqual(rhs);
+	bool typeIdIsEqual = typeid(lhs) == typeid(rhs);
+	bool isValueEqual  = typeIdIsEqual && lhs.isEqual(rhs);
+	return isValueEqual;
 }
 
 bool operator<(const ParameterBase& lhs, const ParameterBase& rhs) {

@@ -4,6 +4,21 @@
 
 using namespace parameterCombinator;
 
+struct point_t
+{
+	int x;
+	int y;
+	point_t(int a, int b) : x(a), y(b) {};
+	bool operator<(const point_t& other) { return std::sqrt(x * x + y * y) < std::sqrt(other.x * other.x + other.y * other.y); }
+	friend bool operator==(const point_t& lhs, const point_t& rhs);
+};
+
+bool operator==(const point_t& lhs, const point_t& rhs)
+{
+	int result = std::sqrt(lhs.x * lhs.x + lhs.y * lhs.y) == std::sqrt(rhs.x * rhs.x + rhs.y * rhs.y);
+	return result;
+}
+
 void printDifferences(const parameterInstanceSet_t& expectedCombinations, const parameterInstanceSet_t* paramSet)
 {
 	std::cout << "Size of output: " << paramSet->size() << std::endl;
@@ -372,14 +387,6 @@ void testParameter()
 	}
 	// Test that Parameters works with custom classes
 	{
-		struct point_t
-		{
-			int x;
-			int y;
-			point_t(int a, int b) : x(a), y(b) {};
-			bool operator<(const point_t& other) { return std::sqrt(x * x + y * y) < std::sqrt(other.x * other.x + other.y * other.y); }
-			bool operator==(const point_t& other) { return std::sqrt(x * x + y * y) == std::sqrt(other.x * other.x + other.y * other.y); }
-		};
 		point_t p  = { 1, 2 };
 		point_t p2 = { 1, 2 };
 		point_t p3 = { 1, 3 };
@@ -586,12 +593,12 @@ bool testGenerateCombinationName()
 
 int main()
 {
-	//testParameter();
+	testParameter();
 	assert(!testSimpleCombination());
 	assert(!testCombinationWithDontCare());
 	assert(!testCombinationWithMultipleDontCares());
 	assert(!testSimpleRecombination());
-	//assert(!testAddition());
+	assert(!testAddition());
 	assert(!testGenerateCombinationName());
 	testIteration();
 
