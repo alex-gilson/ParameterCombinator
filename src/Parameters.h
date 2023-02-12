@@ -1,4 +1,8 @@
 #pragma once
+#ifdef _WIN32
+#pragma warning( push )
+#pragma warning( disable : 4702 )
+#endif
 #include <unordered_map>
 #include <string>
 #include <map>
@@ -12,20 +16,32 @@
 #include <type_traits>
 #include <optional>
 #include <sstream>
+#include <memory>
+#include <cstring>
+#include <cmath>
 
 namespace parameterCombinator
 {
 
 namespace CHECK
 {
-	struct No {};
-	template<typename T, typename Arg> No operator== (const T&, const Arg&);
+	//struct NoEqual {};
+	//template<typename T, typename Arg> NoEqual operator== (const T&, const Arg&);
 
-	template<typename T, typename Arg = T>
-	struct EqualExists
-	{
-		enum { value = !std::is_same<decltype(*(T*)(0) == *(Arg*)(0)), No>::value };
-	};
+	//template<typename T, typename Arg = T>
+	//struct EqualExists
+	//{
+	//	enum { value = !std::is_same<decltype(*(T*)(0) == *(Arg*)(0)), NoEqual>::value };
+	//};
+
+	//struct NoLessThan {};
+	//template<typename T, typename Arg> NoLessThan operator< (const T&, const Arg&);
+
+	//template<typename T, typename Arg = T>
+	//struct LessThanExists
+	//{
+	//	enum { value = !std::is_same<decltype(*(T*)(0) == *(Arg*)(0)), LessThanExists>::value };
+	//};
 }
 
 
@@ -78,6 +94,8 @@ struct is_string<T, STRING<T, std::char_traits<T>, std::allocator<T>>>
 template<typename T>
 class ParameterDerived : public ParameterBase {
 public:
+	//static_assert(CHECK::EqualExists<T>::value, "Error, Parameter must be comparable. Define a '==' operator for your class.");
+	//static_assert(CHECK::LessThanExists<T>::value, "Error, Parameter must be comparable. Define a '<' operator for your class.");
 	ParameterDerived(T v) : val_(v) {}
 	virtual ~ParameterDerived() {};
 	T val_;
@@ -108,9 +126,16 @@ protected:
 		auto v = static_cast<const ParameterDerived&>(obj);
 		if constexpr (std::is_pointer<T>::value)
 		{
+			if constexpr (std::is_same<T, const char*>::value)
+			{
+				return !strcmp(val_, v.val_);
+			}
 			return *val_ == *v.val_;
 		}
-		return val_ == v.val_;
+		else
+		{
+			return val_ == v.val_;
+		}
 	}
 	virtual bool isLowerThan(const ParameterBase& obj) const override
 	{
@@ -142,6 +167,11 @@ public:
 	friend bool operator<=(const Parameter& lhs, const Parameter& rhs);
 	friend bool  operator>(const Parameter& lhs, const Parameter& rhs);
 	friend bool operator>=(const Parameter& lhs, const Parameter& rhs);
+
+	Parameter(const Parameter& other)
+	{
+		param_ = other.param_;
+	}
 
 	const Parameter& operator=(const Parameter& other)
 	{
@@ -186,7 +216,6 @@ public:
 	template<typename T>
 	ParametersVec(std::initializer_list<T> vals)
 	{
-		static_assert(CHECK::EqualExists<T>::value, "Error, ParameterDerived must be comparable. Define a '==' operator for your class.");
 		for (auto& val : vals)
 		{
 			parametersVec_.emplace_back(val);
@@ -289,3 +318,7 @@ struct ParameterInstanceSetCompare
 using parameterInstanceSet_t = std::set<parameterInstanceMap_t, ParameterInstanceSetCompare>;
 
 } // Namespace parameterCombinator
+
+#ifdef _WIN32
+#pragma warning ( pop )
+#endif

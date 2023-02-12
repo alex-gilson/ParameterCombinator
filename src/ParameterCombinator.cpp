@@ -108,7 +108,7 @@ namespace parameterCombinator
 		return parameterInstanceSet_.get();
 	}
 
-	void ParameterCombinator::addCombinations(ParameterCombinator& paramCombinator1, ParameterCombinator& paramCombinator2, dontCares_t& dontCares)
+	void ParameterCombinator::addCombinations(ParameterCombinator& paramCombinator1, ParameterCombinator& paramCombinator2, const dontCares_t& dontCares)
 	{
 		const parameterInstanceSet_t* paramSet1 = paramCombinator1.getParameterInstanceSet();
 		const parameterInstanceSet_t* paramSet2 = paramCombinator2.getParameterInstanceSet();

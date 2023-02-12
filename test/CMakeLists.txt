@@ -3,7 +3,11 @@ add_executable(ParameterCombinatorTs
                     ParameterCombinatorTs.cpp
                )
 
-target_compile_options(ParameterCombinatorTs PUBLIC -Wall -pedantic -g)
+if(MSVC)
+  target_compile_options(ParameterCombinatorTs PRIVATE /W4 /WX)
+else()
+  target_compile_options(ParameterCombinatorTs PRIVATE -Wall -Wextra -Wpedantic -Werror)
+endif()
 
 target_include_directories(ParameterCombinatorTs
                               PRIVATE
