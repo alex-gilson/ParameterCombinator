@@ -25,23 +25,23 @@ namespace parameterCombinator
 
 namespace CHECK
 {
-	//struct NoEqual {};
-	//template<typename T, typename Arg> NoEqual operator== (const T&, const Arg&);
+	struct NoEqual {};
+	template<typename T, typename Arg> NoEqual operator== (const T&, const Arg&);
 
-	//template<typename T, typename Arg = T>
-	//struct EqualExists
-	//{
-	//	enum { value = !std::is_same<decltype(*(T*)(0) == *(Arg*)(0)), NoEqual>::value };
-	//};
+	template<typename T, typename Arg = T>
+	struct EqualExists
+	{
+		enum { value = !std::is_same<decltype(*(T*)(0) == *(Arg*)(0)), NoEqual>::value };
+	};
 
-	//struct NoLessThan {};
-	//template<typename T, typename Arg> NoLessThan operator< (const T&, const Arg&);
+	struct NoLessThan {};
+	template<typename T, typename Arg> NoLessThan operator< (const T&, const Arg&);
 
-	//template<typename T, typename Arg = T>
-	//struct LessThanExists
-	//{
-	//	enum { value = !std::is_same<decltype(*(T*)(0) == *(Arg*)(0)), LessThanExists>::value };
-	//};
+	template<typename T, typename Arg = T>
+	struct LessThanExists
+	{
+		enum { value = !std::is_same<decltype(*(T*)(0) == *(Arg*)(0)), LessThanExists>::value };
+	};
 }
 
 
@@ -92,61 +92,7 @@ struct is_string<T, STRING<T, std::char_traits<T>, std::allocator<T>>>
 };
 
 template<typename T>
-class ParameterDerived : public ParameterBase {
-public:
-	//static_assert(CHECK::EqualExists<T>::value, "Error, Parameter must be comparable. Define a '==' operator for your class.");
-	//static_assert(CHECK::LessThanExists<T>::value, "Error, Parameter must be comparable. Define a '<' operator for your class.");
-	ParameterDerived(T v) : val_(v) {}
-	virtual ~ParameterDerived() {};
-	T val_;
-	std::string toString() const override
-	{
-		if constexpr (is_string<T>::value || std::is_same<const char*, std::remove_cv_t<T>>::value)
-		{
-			return val_;
-		}
-		else if constexpr (std::is_integral_v<T>)
-		{
-			return std::to_string(val_);
-		}
-		else if constexpr (std::is_floating_point<T>::value)
-		{
-			std::stringstream ss;
-			ss << std::scientific << val_;
-			return ss.str();
-		}
-		else
-		{
-			return std::to_string(getAddressOfVal(val_));
-		}
-	}
-protected:
-	virtual bool isEqual(const ParameterBase& obj) const override
-	{
-		auto v = static_cast<const ParameterDerived&>(obj);
-		if constexpr (std::is_pointer<T>::value)
-		{
-			if constexpr (std::is_same<T, const char*>::value)
-			{
-				return !strcmp(val_, v.val_);
-			}
-			return *val_ == *v.val_;
-		}
-		else
-		{
-			return val_ == v.val_;
-		}
-	}
-	virtual bool isLowerThan(const ParameterBase& obj) const override
-	{
-		auto v = static_cast<const ParameterDerived&>(obj);
-		if constexpr (std::is_pointer<T>::value)
-		{
-			return *val_ < *v.val_;
-		}
-		return val_ < v.val_;
-	}
-};
+class ParameterDerived;
 
 class Parameter
 {
@@ -205,6 +151,63 @@ struct ParameterHasher
 	std::size_t operator()(const Parameter& key) const
 	{
 		return std::hash<int>()(getAddressOfVal(*key));
+	}
+};
+
+template<typename T>
+class ParameterDerived : public ParameterBase {
+public:
+	static_assert(CHECK::EqualExists<T>::value, "Error, Parameter must be comparable. Define a '==' operator for your class.");
+	static_assert(CHECK::LessThanExists<T>::value, "Error, Parameter must be comparable. Define a '<' operator for your class.");
+	ParameterDerived(T v) : val_(v) {}
+	virtual ~ParameterDerived() {};
+	T val_;
+	std::string toString() const override
+	{
+		if constexpr (is_string<T>::value || std::is_same<const char*, std::remove_cv_t<T>>::value)
+		{
+			return val_;
+		}
+		else if constexpr (std::is_integral_v<T>)
+		{
+			return std::to_string(val_);
+		}
+		else if constexpr (std::is_floating_point<T>::value)
+		{
+			std::stringstream ss;
+			ss << std::scientific << val_;
+			return ss.str();
+		}
+		else
+		{
+			return std::to_string(getAddressOfVal(val_));
+		}
+	}
+protected:
+	virtual bool isEqual(const ParameterBase& obj) const override
+	{
+		auto v = static_cast<const ParameterDerived&>(obj);
+		if constexpr (std::is_pointer<T>::value)
+		{
+			if constexpr (std::is_same<T, const char*>::value)
+			{
+				return !strcmp(val_, v.val_);
+			}
+			return *val_ == *v.val_;
+		}
+		else
+		{
+			return val_ == v.val_;
+		}
+	}
+	virtual bool isLowerThan(const ParameterBase& obj) const override
+	{
+		auto v = static_cast<const ParameterDerived&>(obj);
+		if constexpr (std::is_pointer<T>::value)
+		{
+			return *val_ < *v.val_;
+		}
+		return val_ < v.val_;
 	}
 };
 
@@ -280,11 +283,6 @@ struct ParameterInstanceSetCompare
 	ParameterInstanceSetCompare(const dontCares_t& dontCares)
 		: dontCares_(dontCares)
 	{};
-	ParameterInstanceSetCompare& operator=(const ParameterInstanceSetCompare& other)
-	{
-		dontCares_ = other.dontCares_;
-		return *this;
-	}
 	bool operator()(const parameterInstanceMap_t& a, const parameterInstanceMap_t& b) const
 	{
 		for (auto& param : a)
