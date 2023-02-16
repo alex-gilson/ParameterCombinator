@@ -247,10 +247,10 @@ private:
 
 
 using parameterInstanceMap_t  = std::map<std::string, Parameter >;
-using parameterCombinations_t = std::unordered_map<std::string, ParametersVec>;
+using parameterCombinations_t = std::map<std::string, ParametersVec>;
 using stringSet_t = std::set<std::string>;
-using stringSetMap_t = std::unordered_map<std::string, stringSet_t >;
-using dontCares_t = std::unordered_map<std::string, std::unordered_map<Parameter, std::set<std::string> , ParameterHasher> >;
+using stringSetMap_t = std::map<std::string, stringSet_t >;
+using dontCares_t = std::map<std::string, std::unordered_map<Parameter, std::set<std::string> , ParameterHasher> >;
 
 template<typename T>
 auto getVal(const Parameter& param)
@@ -291,9 +291,18 @@ struct ParameterInstanceSetCompare
 			for (auto& dontCare : dontCares_)
 			{
 				const std::string& dontCareKey = dontCare.first;
-				if ((param.first == dontCareKey && dontCare.second.empty()) // Total don't care. This parameter is completely ignored
-				|| (!dontCare.second.empty() && b.count(dontCareKey) && dontCare.second.count(b.at(dontCareKey))
-				&&  dontCare.second.at(b.at(dontCareKey)).count(param.first))) // Does b care about param.first?
+
+				// Total don't care. This parameter is completely ignored
+				bool totalDontCare = param.first == dontCareKey && dontCare.second.empty();
+
+				// Traditional don't care.
+				bool normalDontCare =
+					!dontCare.second.empty()
+					&& b.count(dontCareKey)
+					&& dontCare.second.count(b.at(dontCareKey))
+					&& dontCare.second.at(b.at(dontCareKey)).count(param.first);
+
+				if (totalDontCare || normalDontCare)
 				{
 					skip = true;
 					break;
@@ -306,7 +315,21 @@ struct ParameterInstanceSetCompare
 			}
 			else
 			{
-				return b.count(param.first) ? (param.second < b.at(param.first)) : false;
+				if (b.count(param.first))
+				{
+					if (param.second < b.at(param.first))
+					{
+						return true;
+					}
+					else
+					{
+						return false;
+					}
+				}
+				else
+				{
+					return false;
+				}
 			}
 		}
 		return false;

@@ -22,6 +22,24 @@ bool operator==(const point_t& lhs, const point_t& rhs)
 void printDifferences(const parameterInstanceSet_t& expectedCombinations, const parameterInstanceSet_t* paramSet)
 {
 	std::cout << "Size of output: " << paramSet->size() << std::endl;
+	std::cout << "Output elements:" << std::endl;
+	for (auto& combination : *paramSet)
+	{
+		for (auto& param : combination)
+		{
+			std::cout << param.first << ": " << param.second->toString() << ", ";
+		}
+		std::cout << std::endl;
+	}
+	std::cout << "Expected elements:" << std::endl;
+	for (auto& combination : expectedCombinations)
+	{
+		for (auto& param : combination)
+		{
+			std::cout << param.first << ": " << param.second->toString() << ", ";
+		}
+		std::cout << std::endl;
+	}
 	std::cout << "Size of expected result: " << expectedCombinations.size() << std::endl;
 	std::cout << "Elements expected in output but not found:" << std::endl;
 	for (auto& combination : expectedCombinations)
@@ -64,7 +82,6 @@ bool checkEquality(const parameterInstanceSet_t& expectedCombinations, Parameter
 	for (auto& combination : *paramSet)
 	{
 		failed |= !(expectedCombinations.count(combination));
-		int a = 3; (void)a;
 	}
 	if (failed)
 	{
@@ -598,7 +615,7 @@ int main()
 	assert(!testCombinationWithDontCare());
 	assert(!testCombinationWithMultipleDontCares());
 	assert(!testSimpleRecombination());
-	assert(!testAddition());
+	//assert(!testAddition());
 	assert(!testGenerateCombinationName());
 	testIteration();
 

@@ -72,9 +72,20 @@ namespace parameterCombinator
 					continue;
 				}
 				Parameter dontCareVal = paramInstance[dontCareKey];
-				for (auto& paramName : dontCare.second[dontCareVal])
+				// Accesing dontCare.second[dontCareVal] results in an increment in the size of the dontCare[dontCareVal].
+				// This is problematic for total don't cares.
+				// Check size first and only access it if size is larger or equal to one.
+				if (dontCare.second.count(dontCareVal))
 				{
-					paramInstance.erase(paramName);
+					for (auto& paramName : dontCare.second[dontCareVal])
+					{
+						paramInstance.erase(paramName);
+					}
+				}
+				// Total don't care
+				if (!dontCare.second.size())
+				{
+					paramInstance.erase(dontCareKey);
 				}
 			}
 			parameterInstanceSet_->insert(paramInstance);
